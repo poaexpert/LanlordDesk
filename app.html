@@ -1,0 +1,2968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LandlordDesk — The Complete Landlord Tracker</title>
+<style>
+  :root{
+    --ink:#1c2530; --muted:#66727f; --line:#dde3e9; --bg:#f4f6f8; --card:#ffffff;
+    --brand:#14532d; --brand2:#166534; --accent:#b45309;
+    --ok:#15803d; --okbg:#e8f6ec; --warn:#b45309; --warnbg:#fdf3e2; --bad:#b91c1c; --badbg:#fdecec;
+    --info:#274b9f; --infobg:#e8eefc;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
+  header.topbar{background:var(--brand);color:#fff;padding:14px 18px;position:sticky;top:0;z-index:20}
+  .topbar .row{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .logo{font-size:21px;font-weight:800;letter-spacing:.2px}
+  .logo span{color:#bbf7d0}
+  .tagline{font-size:12.5px;opacity:.85}
+  .topbar .spacer{flex:1}
+  .topbar button{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 11px;font-size:13px;cursor:pointer}
+  .topbar button:hover{background:rgba(255,255,255,.25)}
+  nav.tabs{max-width:1180px;margin:0 auto;padding:10px 18px 0;display:flex;gap:6px;flex-wrap:wrap}
+  nav.tabs button{border:1px solid var(--line);background:#fff;border-bottom:none;border-radius:10px 10px 0 0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer}
+  nav.tabs button.active{color:var(--brand);background:var(--card);box-shadow:inset 0 -3px 0 var(--card);border-color:var(--line)}
+  main{max-width:1180px;margin:0 auto;padding:0 18px 50px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:0 var(--radius) var(--radius) var(--radius);padding:20px;margin-top:0}
+  h2{margin:0 0 4px;font-size:19px}
+  h3{margin:20px 0 8px;font-size:16px}
+  h3:first-of-type{margin-top:6px}
+  .sub{color:var(--muted);font-size:13.5px;margin-bottom:14px}
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0 18px}
+  .stat{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;background:#fbfcfd}
+  .stat .label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+  .stat .value{font-size:24px;font-weight:800;margin-top:3px}
+  .stat .note{font-size:12.5px;color:var(--muted)}
+  .progressbar{height:10px;background:#e6ebef;border-radius:6px;overflow:hidden;margin-top:8px}
+  .progressbar>div{height:100%;background:var(--brand2);width:0%}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  tr:last-child td{border-bottom:none}
+  .btn{background:var(--brand2);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer}
+  .btn:hover{background:var(--brand)}
+  .btn.secondary{background:#fff;color:var(--brand);border:1px solid var(--brand2)}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500}
+  .btn.small{padding:4px 10px;font-size:13px}
+  .btn.danger{background:#fff;color:var(--bad);border:1px solid #f0c4c4}
+  form.inline{display:flex;flex-wrap:wrap;gap:8px;align-items:end;background:#fbfcfd;border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin:12px 0 18px}
+  form.inline .field{display:flex;flex-direction:column;gap:4px}
+  form.inline label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  input,select,textarea{font:inherit;padding:8px 10px;border:1px solid #c8d1d9;border-radius:8px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:2px solid #86c79b;outline-offset:1px}
+  input[type=number]{width:110px}
+  textarea{width:100%;min-height:74px;resize:vertical}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12.5px;font-weight:700;white-space:nowrap}
+  .pill.paid{background:var(--okbg);color:var(--ok)}
+  .pill.partial{background:var(--warnbg);color:var(--warn)}
+  .pill.unpaid{background:var(--badbg);color:var(--bad)}
+  .pill.none{background:#eef1f4;color:var(--muted)}
+  .pill.open{background:var(--badbg);color:var(--bad)}
+  .pill.prog{background:var(--warnbg);color:var(--warn)}
+  .pill.done{background:var(--okbg);color:var(--ok)}
+  .pill.info{background:var(--infobg);color:var(--info)}
+  .pill.soon{background:var(--warnbg);color:var(--warn)}
+  .prop{border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  .prop-head{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+  .prop-head .name{font-size:17px;font-weight:800}
+  .prop-head .addr{color:var(--muted);font-size:13.5px}
+  .prop-head .spacer{flex:1}
+  .empty{border:1.5px dashed #c4ced6;border-radius:var(--radius);padding:26px;text-align:center;color:var(--muted);background:#fbfcfd}
+  .planctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .planctl label{font-size:13px;color:#e7f0e9}
+  .planctl select{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 8px;font-size:13px;cursor:pointer}
+  .planctl select option{color:var(--ink)}
+  .planctl .pill.info{background:rgba(255,255,255,.18);color:#fff}
+  nav.tabs button.locked{opacity:.72}
+  nav.tabs button.locked::after{content:" 🔒";font-size:11px}
+  section.panel.gated>:not(h2):not(.plan-lock){display:none!important}
+  .plan-lock-card{border:1.5px dashed #c4ced6;border-radius:var(--radius);padding:22px 24px;background:#fbfcfd;margin:14px 0}
+  .plan-lock-card .plan-lock-title{font-size:16.5px;font-weight:800;color:var(--ink);margin-bottom:8px}
+  .plan-lock-card p{margin:6px 0;font-size:14px}
+  .gate-note{border:1.5px dashed #c4ced6;border-radius:var(--radius);padding:12px 16px;background:#fbfcfd;color:var(--muted);font-size:13.5px;margin-top:10px}
+  .monthbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+  .monthbar input[type=month]{width:auto}
+  .checkroom{border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
+  .checkroom>h4{margin:0;background:#f2f6f3;padding:11px 14px;font-size:15px}
+  .checkitem{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .checkitem .item-name{flex:1 1 240px;font-weight:600}
+  .checkitem .item-name small{display:block;font-weight:400;color:var(--muted)}
+  .checkitem select{width:132px}
+  .checkitem input.note{flex:1 1 180px}
+  .scorewrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .scorebig{font-size:38px;font-weight:800;color:var(--brand)}
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:14px 0 6px}
+  .mini{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;background:#fbfcfd}
+  .mini h3{margin:0 0 8px;font-size:15px}
+  .mini ul{margin:0;padding-left:18px;font-size:13.5px}
+  .mini li{margin-bottom:5px}
+  .mini .allclear{color:var(--ok);font-weight:600;font-size:13.5px}
+  .overdue{color:var(--bad);font-weight:700}
+  .notecard{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;background:#fbfcfd}
+  .notecard .nhead{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+  .notecard .ntitle{font-weight:800}
+  .notecard .nmeta{color:var(--muted);font-size:12.5px}
+  .notecard .nbody{white-space:pre-wrap;margin-top:6px;font-size:14px}
+  .backupbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 4px}
+  footer{max-width:1180px;margin:0 auto;padding:0 18px 30px;color:var(--muted);font-size:12.5px}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:9px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50}
+  .toast.show{opacity:1}
+  .copybox{width:100%;min-height:86px;font-size:13.5px;background:#fbfcfd}
+  .appcard,.leasecard{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;background:#fbfcfd}
+  .appcard .ahead,.leasecard .ahead{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+  .appcard .aname,.leasecard .aname{font-weight:800;font-size:16px}
+  .screenrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line)}
+  .screenrow .sname{flex:0 0 170px;font-weight:600}
+  .screenrow input[type=number]{width:90px}
+  .screenrow input.note{flex:1 1 160px}
+  #printArea{display:none}
+  .sigrow{display:flex;gap:40px;margin-top:34px;flex-wrap:wrap}
+  .sigbox{flex:1 1 220px}
+  .sigline{border-bottom:1.5px solid #000;height:34px;margin-bottom:4px}
+  @media print{
+    body>*:not(#printArea){display:none !important}
+    #printArea{display:block !important;color:#000;font-size:12.5px;line-height:1.55}
+    #printArea h1{font-size:19px;margin:0 0 2px}
+    #printArea h2{font-size:15px;margin:16px 0 6px}
+    #printArea table{font-size:12px}
+    #printArea th,#printArea td{border-bottom:1px solid #999}
+  }
+  @media (max-width:640px){
+    th,td{padding:7px 5px;font-size:13px}
+    .panel{padding:14px}
+    input[type=number]{width:88px}
+    .checkitem select{width:118px}
+    nav.tabs button{padding:8px 10px;font-size:13px}
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="row">
+    <div>
+      <div class="logo">Landlord<span>Desk</span></div>
+      <div class="tagline">Everything about your rentals — rent, tenants, maintenance, money &amp; inspections — in one place</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="planctl">
+      <label for="planSelect"><strong>Plan</strong> (trial control — preview each tier)</label>
+      <select id="planSelect">
+        <option value="desk">Desk — $49.99/mo · up to 10 units</option>
+        <option value="pro">Pro — $99.99/mo · up to 25 units</option>
+        <option value="portfolio">Portfolio — $199.99/mo · up to 50 units</option>
+        <option value="empire">Empire — $299/mo · unlimited units</option>
+      </select>
+      <span id="planBadge" class="pill info"></span>
+    </div>
+    <button id="demoBtn" type="button">Load demo data</button>
+    <button id="resetBtn" type="button">Clear all data</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="dashboard" class="active" type="button">Dashboard</button>
+  <button data-tab="rent" type="button">Rent &amp; Payments</button>
+  <button data-tab="applications" type="button">Applications</button>
+  <button data-tab="leases" type="button">Leases</button>
+  <button data-tab="properties" type="button">Properties &amp; Units</button>
+  <button data-tab="tenants" type="button">Tenants</button>
+  <button data-tab="tenantview" type="button">Tenant View</button>
+  <button data-tab="maintenance" type="button">Maintenance</button>
+  <button data-tab="money" type="button">Money</button>
+  <button data-tab="documents" type="button">Documents</button>
+  <button data-tab="inspection" type="button">Inspection Checklist</button>
+  <button data-tab="tasks" type="button">Tasks</button>
+  <button data-tab="vendors" type="button">Vendors</button>
+  <button data-tab="notes" type="button">Notes &amp; Data</button>
+</nav>
+
+<main>
+  <!-- ============ DASHBOARD ============ -->
+  <section class="panel" id="panel-dashboard">
+    <h2>Dashboard</h2>
+    <div class="sub">Your whole portfolio at a glance — updated automatically from every other tab.</div>
+    <div class="summary" id="dashSummary"></div>
+    <div class="cols">
+      <div class="mini"><h3>Leases expiring (next 60 days)</h3><div id="dashLeases"></div></div>
+      <div class="mini"><h3>Arrears — who owes what</h3><div id="dashArrears"></div></div>
+      <div class="mini"><h3>Open work</h3><div id="dashWork"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ RENT & PAYMENTS ============ -->
+  <section class="panel" id="panel-rent" hidden>
+    <h2>Rent &amp; Payments</h2>
+    <div class="sub">Mark each unit's rent for the month, record when and how it was paid, and see exactly who is behind — and by how much.</div>
+    <div class="monthbar">
+      <label for="rentMonth"><strong>Month:</strong></label>
+      <input type="month" id="rentMonth">
+      <button class="btn ghost small" id="thisMonthBtn" type="button">Jump to this month</button>
+    </div>
+    <div class="summary" id="rentSummary"></div>
+    <div id="rentTableWrap"></div>
+    <h3>Arrears</h3>
+    <div class="sub">Every occupied unit that still owes rent — current month (once the due day has passed) plus any month with a recorded shortfall. When rent is 5+ days late and the lease has a late fee, LandlordDesk suggests the fee — apply it with one click and it is recorded under Money → Other income.</div>
+    <div id="arrearsWrap"></div>
+    <h3>Payment history</h3>
+    <div class="sub">Every payment recorded in the tracker, newest first.</div>
+    <div id="historyWrap"></div>
+    <h3>Reminders queue</h3>
+    <div class="sub">Ready-to-send messages for everyone who owes rent, written from their actual balance and due date. Copy one and paste it into your text or email app. (Automatic sending by text/email arrives with the full hosted version.)</div>
+    <div id="remindersWrap"></div>
+  </section>
+
+  <!-- ============ PROPERTIES ============ -->
+  <section class="panel" id="panel-properties" hidden>
+    <h2>Properties &amp; Units</h2>
+    <div class="sub">Add your properties, then add a unit to each one — rent, deposit, due day, size, and status. Link a tenant from the Tenants tab (or right in the unit form).</div>
+    <form class="inline" id="propForm">
+      <div class="field"><label for="propName">Property name</label><input id="propName" required placeholder="e.g. Maple St Duplex"></div>
+      <div class="field"><label for="propAddr">Address</label><input id="propAddr" placeholder="Street, City, ST ZIP" size="30"></div>
+      <button class="btn" type="submit">+ Add property</button>
+    </form>
+    <div id="propList"></div>
+    <h3>Vacancy listings</h3>
+    <div class="sub">For every vacant or listed unit, generate a ready-to-post listing from the unit's own facts — headline and full description you can copy straight into Zillow, Apartments.com, Craigslist, or Facebook Marketplace. (Automatic syndication feeds arrive with the full hosted version.)</div>
+    <div id="listingWrap"></div>
+  </section>
+
+  <!-- ============ TENANTS ============ -->
+  <section class="panel" id="panel-tenants" hidden>
+    <h2>Tenants</h2>
+    <div class="sub">One profile per tenant — contact details, lease dates, deposit held, and the late fee in their lease. Leases ending within 60 days are highlighted.</div>
+    <form class="inline" id="tenantForm">
+      <div class="field"><label for="tName">Full name</label><input id="tName" required placeholder="Tenant name"></div>
+      <div class="field"><label for="tPhone">Phone</label><input id="tPhone" placeholder="(555) 123-4567"></div>
+      <div class="field"><label for="tEmail">Email</label><input id="tEmail" type="email" placeholder="name@email.com"></div>
+      <div class="field"><label for="tUnit">Unit</label><select id="tUnit"></select></div>
+      <div class="field"><label for="tLeaseStart">Lease starts</label><input type="date" id="tLeaseStart"></div>
+      <div class="field"><label for="tLeaseEnd">Lease ends</label><input type="date" id="tLeaseEnd"></div>
+      <div class="field"><label for="tDeposit">Deposit held ($)</label><input type="number" id="tDeposit" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label for="tLateFee">Late fee ($)</label><input type="number" id="tLateFee" min="0" step="0.01" placeholder="0.00"></div>
+      <button class="btn" type="submit">+ Add tenant</button>
+    </form>
+    <div id="tenantList"></div>
+  </section>
+
+  <!-- ============ MAINTENANCE ============ -->
+  <section class="panel" id="panel-maintenance" hidden>
+    <h2>Maintenance Tracker</h2>
+    <div class="sub">Every repair request in one list — what's open, who's handling it, and what it cost. Open items also show on the Dashboard.</div>
+    <form class="inline" id="mtForm">
+      <div class="field"><label for="mtDate">Date reported</label><input type="date" id="mtDate" required></div>
+      <div class="field"><label for="mtScope">Property / Unit</label><select id="mtScope"></select></div>
+      <div class="field"><label for="mtIssue">Issue</label><input id="mtIssue" required placeholder="e.g. Kitchen sink leaking" size="26"></div>
+      <div class="field"><label for="mtPriority">Priority</label>
+        <select id="mtPriority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="emergency">Emergency</option></select></div>
+      <div class="field"><label for="mtVendor">Vendor</label><select id="mtVendor"></select></div>
+      <div class="field"><label for="mtStatus">Status</label>
+        <select id="mtStatus"><option value="open" selected>Open</option><option value="inprogress">In progress</option><option value="done">Done</option></select></div>
+      <div class="field"><label for="mtCost">Cost ($)</label><input type="number" id="mtCost" min="0" step="0.01" placeholder="0.00"></div>
+      <button class="btn" type="submit">+ Add request</button>
+    </form>
+    <div class="summary">
+      <div class="stat"><div class="label">Open</div><div class="value" id="mtOpen">0</div></div>
+      <div class="stat"><div class="label">In progress</div><div class="value" id="mtProg">0</div></div>
+      <div class="stat"><div class="label">Done</div><div class="value" id="mtDone">0</div></div>
+      <div class="stat"><div class="label">Total cost (all)</div><div class="value" id="mtCostTotal">$0.00</div></div>
+    </div>
+    <div id="mtTableWrap"></div>
+  </section>
+
+  <!-- ============ MONEY ============ -->
+  <section class="panel" id="panel-money" hidden>
+    <h2>Money</h2>
+    <div class="sub">Expenses, other income, a profit-and-loss view per property, and a year-end summary by category for tax season.</div>
+    <div class="monthbar">
+      <label for="moneyMonth"><strong>Month:</strong></label>
+      <input type="month" id="moneyMonth">
+      <button class="btn ghost small" id="moneyThisMonthBtn" type="button">Jump to this month</button>
+    </div>
+    <div class="summary">
+      <div class="stat"><div class="label">Rent collected (month)</div><div class="value" id="plRentIn">$0.00</div></div>
+      <div class="stat"><div class="label">Other income (month)</div><div class="value" id="plIncIn">$0.00</div></div>
+      <div class="stat"><div class="label">Expenses (month)</div><div class="value" id="plExpOut">$0.00</div></div>
+      <div class="stat"><div class="label">Net cash flow (month)</div><div class="value" id="plNet">$0.00</div></div>
+    </div>
+    <h3>Profit &amp; loss by property — <span id="plMonthLabel"></span></h3>
+    <div id="plWrap"></div>
+
+    <h3>Expenses</h3>
+    <form class="inline" id="expForm">
+      <div class="field"><label for="expDate">Date</label><input type="date" id="expDate" required></div>
+      <div class="field"><label for="expScope">Property / Unit</label><select id="expScope"></select></div>
+      <div class="field"><label for="expCat">Category</label>
+        <select id="expCat">
+          <option>Repairs</option><option>Maintenance</option><option>Utilities</option>
+          <option>Property tax</option><option>Insurance</option><option>Water / sewer</option>
+          <option>Trash</option><option>Lawn / snow</option><option>Supplies</option>
+          <option>Legal / fees</option><option>Management</option><option>Mortgage interest</option><option>Other</option>
+        </select></div>
+      <div class="field"><label for="expAmt">Amount ($)</label><input type="number" id="expAmt" min="0" step="0.01" required placeholder="0.00"></div>
+      <div class="field"><label for="expNote">Note</label><input id="expNote" placeholder="What was it for?"></div>
+      <button class="btn" type="submit">+ Add expense</button>
+    </form>
+    <div id="expTableWrap"></div>
+
+    <h3>Other income</h3>
+    <div class="sub">Money that isn't rent — late fees, laundry, parking, application fees, and anything else. It counts in the P&amp;L and the year-end summary.</div>
+    <form class="inline" id="incForm">
+      <div class="field"><label for="incDate">Date</label><input type="date" id="incDate" required></div>
+      <div class="field"><label for="incScope">Property / Unit</label><select id="incScope"></select></div>
+      <div class="field"><label for="incCat">Category</label>
+        <select id="incCat">
+          <option>Late fees</option><option>Laundry</option><option>Parking</option>
+          <option>Application fees</option><option>Pet fees</option><option>Utility reimbursement</option><option>Other income</option>
+        </select></div>
+      <div class="field"><label for="incAmt">Amount ($)</label><input type="number" id="incAmt" min="0" step="0.01" required placeholder="0.00"></div>
+      <div class="field"><label for="incNote">Note</label><input id="incNote" placeholder="What was it for?"></div>
+      <button class="btn" type="submit">+ Add income</button>
+    </form>
+    <div id="incTableWrap"></div>
+
+    <h3>Bank statement import</h3>
+    <div class="sub">Download a CSV from your bank (or export one from QuickBooks) and import it here. Each transaction lands in the list below — pick a category and click Categorize to file it into your expenses or other income. Rows you have not categorized yet are flagged so nothing gets lost.</div>
+    <div class="monthbar">
+      <label for="biScope"><strong>File categorized items under:</strong></label>
+      <select id="biScope"></select>
+      <label for="biFile" style="font-weight:600">Import CSV:</label>
+      <input type="file" id="biFile" accept=".csv,text/csv,text/plain">
+    </div>
+    <div id="biSummary" class="sub"></div>
+    <div id="biWrap"></div>
+
+    <h3>Year-end summary (tax view)</h3>
+    <div class="monthbar">
+      <label for="moneyYear"><strong>Year:</strong></label>
+      <select id="moneyYear"></select>
+    </div>
+    <div id="yearWrap"></div>
+
+    <h3>Schedule E summary</h3>
+    <div class="sub">Your rents and expenses for the year, grouped the way IRS Schedule E (Form 1040) asks for them — one block per property, ready to hand to your tax preparer. Print it or download the CSV. This is a bookkeeping summary in Schedule E format, not a filed tax form.</div>
+    <div class="monthbar">
+      <label for="seYear"><strong>Year:</strong></label>
+      <select id="seYear"></select>
+      <button class="btn secondary small" id="sePrintBtn" type="button">Print Schedule E summary</button>
+      <button class="btn secondary small" id="seCsvBtn" type="button">Download CSV</button>
+    </div>
+    <div id="seWrap"></div>
+  </section>
+
+  <!-- ============ APPLICATIONS ============ -->
+  <section class="panel" id="panel-applications" hidden>
+    <h2>Rental Applications</h2>
+    <div class="sub">Log every application you receive, track screening for each applicant, and convert an approved applicant into a tenant with one click. Screening results are recorded here from whichever screening provider you use — live credit, criminal, and eviction reports ordered inside LandlordDesk arrive with the full hosted version.</div>
+    <form class="inline" id="appForm">
+      <div class="field"><label for="aName">Applicant name</label><input id="aName" required placeholder="Full name"></div>
+      <div class="field"><label for="aEmail">Email</label><input id="aEmail" type="email" placeholder="name@email.com"></div>
+      <div class="field"><label for="aPhone">Phone</label><input id="aPhone" placeholder="(555) 123-4567"></div>
+      <div class="field"><label for="aUnit">Applying for</label><select id="aUnit"></select></div>
+      <div class="field"><label for="aOccupants">Occupants</label><input type="number" id="aOccupants" min="1" placeholder="2"></div>
+      <div class="field"><label for="aPets">Pets</label><input id="aPets" placeholder="None / 1 small dog"></div>
+      <div class="field"><label for="aIncome">Monthly income ($)</label><input type="number" id="aIncome" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label for="aEmployer">Employer</label><input id="aEmployer" placeholder="Employer name"></div>
+      <div class="field"><label for="aCurrentAddr">Current address / landlord</label><input id="aCurrentAddr" placeholder="Where they live now" size="26"></div>
+      <div class="field"><label for="aCurrentRent">Current rent ($)</label><input type="number" id="aCurrentRent" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label for="aReason">Reason for leaving</label><input id="aReason" placeholder="Optional"></div>
+      <div class="field" style="flex:1 1 300px"><label for="aNotes">Anything else (their answers / your notes)</label><textarea id="aNotes" placeholder="Extra questions you asked and their answers, references, anything relevant…"></textarea></div>
+      <button class="btn" type="submit">+ Add application</button>
+    </form>
+    <div class="summary" id="appSummary"></div>
+    <div id="appList"></div>
+  </section>
+
+  <!-- ============ LEASES ============ -->
+  <section class="panel" id="panel-leases" hidden>
+    <h2>Lease Builder</h2>
+    <div class="sub">Fill in the terms once and LandlordDesk generates a clean, printable lease document with blank signature lines. The document records the state you select so the right state-specific template pack can be applied at signing — state packs and e-signature arrive with the full hosted version, and any lease should be reviewed by a local attorney before use.</div>
+    <form class="inline" id="leaseForm">
+      <div class="field"><label for="lUnit">Unit</label><select id="lUnit"></select></div>
+      <div class="field"><label for="lTenantName">Tenant name(s)</label><input id="lTenantName" required placeholder="Tenant name" size="24"></div>
+      <div class="field"><label for="lState">State (template pack)</label><select id="lState"></select></div>
+      <div class="field"><label for="lStart">Lease starts</label><input type="date" id="lStart" required></div>
+      <div class="field"><label for="lEnd">Lease ends</label><input type="date" id="lEnd" required></div>
+      <div class="field"><label for="lRent">Rent ($/mo)</label><input type="number" id="lRent" min="0" step="0.01" required placeholder="0.00"></div>
+      <div class="field"><label for="lDeposit">Security deposit ($)</label><input type="number" id="lDeposit" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label for="lLateFee">Late fee ($)</label><input type="number" id="lLateFee" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label for="lGrace">Late-fee grace (days)</label><input type="number" id="lGrace" min="0" max="30" value="5"></div>
+      <div class="field"><label for="lPets">Pets</label>
+        <select id="lPets"><option value="no">Not permitted</option><option value="yes">Permitted (with details)</option></select></div>
+      <div class="field"><label for="lPetDetails">Pet details / deposit</label><input id="lPetDetails" placeholder="e.g. 1 dog under 25 lb, $250 deposit"></div>
+      <div class="field"><label for="lSmoking">Smoking</label>
+        <select id="lSmoking"><option value="no">Not permitted anywhere on the premises</option><option value="outside">Outside only</option><option value="yes">Permitted</option></select></div>
+      <div class="field"><label for="lUtilLandlord">Utilities — landlord provides</label><input id="lUtilLandlord" placeholder="e.g. Water / sewer, trash" size="26"></div>
+      <div class="field"><label for="lUtilTenant">Utilities — tenant provides</label><input id="lUtilTenant" placeholder="e.g. Electric, gas, internet" size="26"></div>
+      <div class="field" style="flex:1 1 300px"><label for="lRules">Additional rules (one per line)</label><textarea id="lRules" placeholder="e.g. Quiet hours 10 PM – 8 AM&#10;No parking on the lawn"></textarea></div>
+      <button class="btn" type="submit">Generate lease document</button>
+    </form>
+    <div id="leaseDocWrap"></div>
+    <h3>Saved leases</h3>
+    <div id="leaseList"></div>
+  </section>
+
+  <!-- ============ TENANT VIEW ============ -->
+  <section class="panel" id="panel-tenantview" hidden>
+    <h2>Tenant View</h2>
+    <div class="sub">A preview of the tenant portal — this is what your tenant sees for their unit: what they owe, a pay-now button, a way to submit maintenance requests (they land in your Maintenance tab), their lease details, and documents you have shared with them. In this prototype everything happens on this device; the live portal with online payments arrives with the full hosted version.</div>
+    <div class="monthbar">
+      <label for="tvUnit"><strong>Viewing as tenant of:</strong></label>
+      <select id="tvUnit"></select>
+    </div>
+    <div id="tvWrap"></div>
+  </section>
+
+  <!-- ============ DOCUMENTS ============ -->
+  <section class="panel" id="panel-documents" hidden>
+    <h2>Documents</h2>
+    <div class="sub">Leases, inspection letters, ID copies, receipts — attach files to a property, a unit, or a tenant and keep them with the record. Files are stored in this browser on this device as part of your LandlordDesk data, so keep individual files modest in size (photos and PDFs under ~1–2 MB work best). Mark a document "shared" to make it visible in the Tenant View.</div>
+    <form class="inline" id="docForm">
+      <div class="field"><label for="docScope">Attach to</label><select id="docScope"></select></div>
+      <div class="field"><label for="docFile">File(s)</label><input type="file" id="docFile" multiple></div>
+      <div class="field"><label for="docShare">Tenant can see it</label>
+        <select id="docShare"><option value="">No — private</option><option value="1">Yes — shared with tenant</option></select></div>
+      <button class="btn" type="submit">+ Attach file(s)</button>
+    </form>
+    <div class="sub" id="docMeta"></div>
+    <div id="docList"></div>
+  </section>
+
+  <!-- ============ INSPECTION ============ -->
+  <section class="panel" id="panel-inspection" hidden>
+    <h2>Section 8 / HQS-Style Pre-Inspection Checklist</h2>
+    <div class="sub">Walk the unit before the inspector does. Mark every item Pass, Fail, or Fix Needed, add notes, and watch your readiness score. This is a preparation aid based on common housing-quality inspection items — it is not an official inspection.</div>
+    <div class="monthbar">
+      <label for="inspProp"><strong>Property:</strong></label>
+      <select id="inspProp"></select>
+      <button class="btn ghost small" id="inspReset" type="button">Reset this checklist</button>
+    </div>
+    <div class="summary">
+      <div class="stat">
+        <div class="label">Readiness score</div>
+        <div class="scorewrap"><div class="scorebig" id="inspScore">—</div><div class="note" id="inspScoreNote">Mark items to see your score.</div></div>
+        <div class="progressbar"><div id="inspBar"></div></div>
+      </div>
+      <div class="stat"><div class="label">Passed</div><div class="value" id="inspPass">0</div></div>
+      <div class="stat"><div class="label">Fail</div><div class="value" id="inspFail">0</div></div>
+      <div class="stat"><div class="label">Fix needed</div><div class="value" id="inspFix">0</div></div>
+      <div class="stat"><div class="label">Not checked</div><div class="value" id="inspTodo">0</div></div>
+    </div>
+    <div id="checklistWrap"></div>
+  </section>
+
+  <!-- ============ TASKS ============ -->
+  <section class="panel" id="panel-tasks" hidden>
+    <h2>Tasks &amp; Reminders</h2>
+    <div class="sub">Lease renewals, inspection dates, repairs you promised — anything with a due date. Overdue items are flagged in red, here and on the Dashboard.</div>
+    <form class="inline" id="taskForm">
+      <div class="field"><label for="taskTitle">Task</label><input id="taskTitle" required placeholder="e.g. Renew lease — Apt A" size="30"></div>
+      <div class="field"><label for="taskDue">Due date</label><input type="date" id="taskDue"></div>
+      <div class="field"><label for="taskProp">Property (optional)</label><select id="taskProp"></select></div>
+      <div class="field"><label for="taskNote">Note</label><input id="taskNote" placeholder="Details (optional)"></div>
+      <button class="btn" type="submit">+ Add task</button>
+    </form>
+    <div id="taskList"></div>
+  </section>
+
+  <!-- ============ VENDORS ============ -->
+  <section class="panel" id="panel-vendors" hidden>
+    <h2>Vendors &amp; Contacts</h2>
+    <div class="sub">Your plumber, electrician, HVAC tech, handyman — everyone you call, in one directory. Vendors you add here can be assigned to maintenance requests.</div>
+    <form class="inline" id="vendorForm">
+      <div class="field"><label for="vName">Name / company</label><input id="vName" required placeholder="e.g. Carter Plumbing"></div>
+      <div class="field"><label for="vTrade">Trade</label>
+        <select id="vTrade">
+          <option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Handyman</option>
+          <option>Roofing</option><option>Painting</option><option>Appliance</option><option>Locksmith</option>
+          <option>Lawn / snow</option><option>Cleaning</option><option>Legal</option><option>Other</option>
+        </select></div>
+      <div class="field"><label for="vPhone">Phone</label><input id="vPhone" placeholder="(555) 123-4567"></div>
+      <div class="field"><label for="vEmail">Email</label><input id="vEmail" type="email" placeholder="name@email.com"></div>
+      <div class="field"><label for="vNotes">Notes</label><input id="vNotes" placeholder="Rates, availability, etc."></div>
+      <button class="btn" type="submit">+ Add vendor</button>
+    </form>
+    <div id="vendorList"></div>
+  </section>
+
+  <!-- ============ NOTES & DATA ============ -->
+  <section class="panel" id="panel-notes" hidden>
+    <h2>Property Notes</h2>
+    <div class="sub">A written log per property — inspector comments, utility account numbers, quirks of the house, anything you'd otherwise forget. (To attach files like leases and photos, use the Documents tab.)</div>
+    <form class="inline" id="noteForm">
+      <div class="field"><label for="nProp">Property</label><select id="nProp"></select></div>
+      <div class="field"><label for="nTitle">Title</label><input id="nTitle" required placeholder="e.g. Water shutoff location" size="28"></div>
+      <div class="field" style="flex:1 1 320px"><label for="nText">Note</label><textarea id="nText" placeholder="Write the details here…"></textarea></div>
+      <button class="btn" type="submit">+ Add note</button>
+    </form>
+    <div class="monthbar">
+      <label for="nFilter"><strong>Show:</strong></label>
+      <select id="nFilter"></select>
+    </div>
+    <div id="noteList"></div>
+
+    <h3>Backup &amp; export</h3>
+    <div class="sub">Your data lives in this browser on this device. Export a backup file regularly — it contains everything (properties, tenants, payments, money, maintenance, tasks, notes, checklists) and can be imported back here at any time. The rent roll downloads as a spreadsheet-ready CSV.</div>
+    <div class="backupbar">
+      <button class="btn secondary" id="exportJsonBtn" type="button">Export all data (JSON)</button>
+      <button class="btn secondary" id="exportCsvBtn" type="button">Export rent roll (CSV)</button>
+      <label for="importFile" style="font-weight:600">Import backup:</label>
+      <input type="file" id="importFile" accept=".json,application/json">
+    </div>
+    <div class="sub">Importing replaces everything currently shown with the backup file's contents — export first if you're unsure.</div>
+  </section>
+</main>
+
+<footer>LandlordDesk — your data is stored only in this browser on this device (localStorage). Use Notes &amp; Data to export a backup. The full hosted version adds accounts, cloud sync, live online rent payments, screening reports, and listing syndication.</footer>
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+"use strict";
+/* ================= LandlordDesk — localStorage only =================
+   Schema v3. Storage key is unchanged from v1 ("landlorddesk_v1") so existing
+   users keep their data; migrate() upgrades v1/v2 records in place (see PRODUCT-NOTES.md). */
+var LS_KEY = "landlorddesk_v1";
+
+function uid(){ return "id" + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function money(n){ n = Number(n)||0; return "$" + n.toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function monthNow(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
+function pad2(n){ return String(n).padStart(2,"0"); }
+function todayStr(){ var d=new Date(); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function datePlus(days){ var d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+days); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function monthPlus(n){ var d=new Date(); d.setDate(1); d.setMonth(d.getMonth()+n); return d.getFullYear()+"-"+pad2(d.getMonth()+1); }
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  var a = new Date(todayStr()+"T00:00:00"), b = new Date(dateStr+"T00:00:00");
+  if(isNaN(b.getTime())) return null;
+  return Math.round((b - a)/86400000);
+}
+function fmtDate(s){
+  if(!s) return "—";
+  var d = new Date(s+"T00:00:00"); if(isNaN(d.getTime())) return esc(s);
+  return d.toLocaleDateString("en-US",{month:"short", day:"numeric", year:"numeric"});
+}
+
+function defaultData(){
+  return { version:3, plan:"empire", properties:[], tenants:[], payments:{}, income:[], expenses:[],
+           maintenance:[], vendors:[], tasks:[], notes:[], inspections:{},
+           applications:[], leases:[], documents:[], bankTxns:[], lateFeesApplied:[] };
+}
+function migrate(d){
+  if(!d || !Array.isArray(d.properties)) return defaultData();
+  ["tenants","income","expenses","maintenance","vendors","tasks","notes",
+   "applications","leases","documents","bankTxns","lateFeesApplied"].forEach(function(k){
+    if(!Array.isArray(d[k])) d[k] = [];
+  });
+  if(!d.payments || typeof d.payments !== "object") d.payments = {};
+  if(!d.inspections || typeof d.inspections !== "object") d.inspections = {};
+  /* Plan is additive on schema v3: records saved before plans existed keep
+     full access (the single-file demo/trial unlocks everything = Empire). */
+  if(["desk","pro","portfolio","empire"].indexOf(d.plan) === -1) d.plan = "empire";
+  d.properties.forEach(function(p){
+    if(!Array.isArray(p.units)) p.units = [];
+    p.units.forEach(function(u){
+      if(u.deposit === undefined) u.deposit = 0;
+      if(u.dueDay === undefined) u.dueDay = 1;
+      if(u.sqft === undefined) u.sqft = "";
+      if(u.beds === undefined) u.beds = "";
+      if(u.baths === undefined) u.baths = "";
+      if(u.status === undefined) u.status = u.tenant ? "occupied" : "vacant";
+      if(u.tenantId === undefined){
+        u.tenantId = "";
+        if(u.tenant){
+          var t = { id: uid(), name: u.tenant, phone:"", email:"", unitId: u.id,
+                    leaseStart:"", leaseEnd: u.leaseEnd || "", deposit: Number(u.deposit)||0, lateFee: 0 };
+          d.tenants.push(t); u.tenantId = t.id;
+        }
+      }
+    });
+  });
+  Object.keys(d.payments).forEach(function(k){
+    var r = d.payments[k]; if(!r || typeof r !== "object") { d.payments[k] = {status:"", amount:"", date:"", method:""}; return; }
+    if(r.date === undefined) r.date = "";
+    if(r.method === undefined) r.method = "";
+  });
+  d.version = 3;
+  return d;
+}
+function load(){
+  try{ var raw = localStorage.getItem(LS_KEY); if(raw){ var d = JSON.parse(raw); if(d && d.properties) return migrate(d); } }catch(e){}
+  return defaultData();
+}
+var DB = load();
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){} }
+save(); /* persist migration result */
+
+function toast(msg){
+  var t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show");
+  setTimeout(function(){ t.classList.remove("show"); }, 1800);
+}
+
+/* ================= Plans (owner pricing ladder, Oct 17, 2026) =================
+   Local/demo gating: the plan is stored with the data and the switcher in the
+   header previews each tier. Real enforcement belongs server-side in the
+   hosted launch (accounts + billing); nothing here phones home. */
+var PLANS = {
+  desk:      { name:"Desk",      price:"$49.99/mo",  cap:10 },
+  pro:       { name:"Pro",       price:"$99.99/mo",  cap:25 },
+  portfolio: { name:"Portfolio", price:"$199.99/mo", cap:50 },
+  empire:    { name:"Empire",    price:"$299/mo",    cap:0 } /* cap 0 = unlimited */
+};
+var PLAN_ORDER = ["desk","pro","portfolio","empire"];
+var FEATURE_INFO = {
+  applications: { label:"Rental applications & the screening tracker", min:"pro" },
+  leases:       { label:"The lease builder",                           min:"pro" },
+  tenantview:   { label:"Tenant View (the tenant portal preview)",     min:"pro" },
+  documents:    { label:"Document storage",                            min:"pro" },
+  bankimport:   { label:"Bank statement import",                       min:"pro" },
+  receipts:     { label:"Receipt attach on expenses",                  min:"pro" },
+  latefees:     { label:"Automatic late fees",                         min:"pro" },
+  reminders:    { label:"The rent reminders queue",                    min:"pro" },
+  listings:     { label:"The vacancy listing builder",                 min:"pro" },
+  pnl:          { label:"Per-property profit & loss",                  min:"portfolio" },
+  schedulee:    { label:"The Schedule E export & year-end tax pack",   min:"portfolio" },
+  inspection:   { label:"The Section 8 / HQS inspection suite",      min:"portfolio" }
+};
+var TAB_FEATURE = { applications:"applications", leases:"leases", tenantview:"tenantview",
+                    documents:"documents", inspection:"inspection" };
+function curPlan(){ return PLANS[DB.plan] ? DB.plan : "empire"; }
+function planRank(p){ return PLAN_ORDER.indexOf(p); }
+function hasFeature(f){
+  var info = FEATURE_INFO[f]; if(!info) return true;
+  return planRank(curPlan()) >= planRank(info.min);
+}
+function unitCap(){ var c = PLANS[curPlan()].cap; return c > 0 ? c : Infinity; }
+function planLockHTML(f){
+  var info = FEATURE_INFO[f], req = PLANS[info.min];
+  return '<div class="plan-lock-card"><div class="plan-lock-title">🔒 ' + esc(info.label) + ' is part of the ' + esc(req.name) + ' plan</div>' +
+    '<p>Your current plan is <strong>' + esc(PLANS[curPlan()].name) + '</strong> (' + esc(PLANS[curPlan()].price) + '). ' +
+    esc(info.label) + ' unlocks on the <strong>' + esc(req.name) + '</strong> plan (' + esc(req.price) + ', up to ' +
+    (req.cap > 0 ? req.cap : "unlimited") + ' units).</p>' +
+    '<p class="sub" style="margin:0">Demo/trial note: use the <strong>Plan (trial control)</strong> in the header at the top of the page to preview any tier.</p></div>';
+}
+function applyPlanGates(){
+  document.querySelectorAll("#tabs button").forEach(function(b){
+    var f = TAB_FEATURE[b.dataset.tab];
+    b.classList.toggle("locked", !!f && !hasFeature(f));
+  });
+  Object.keys(TAB_FEATURE).forEach(function(tab){
+    var panel = document.getElementById("panel-" + tab); if(!panel) return;
+    var f = TAB_FEATURE[tab], locked = !hasFeature(f);
+    panel.classList.toggle("gated", locked);
+    var lock = panel.querySelector(".plan-lock");
+    if(locked){
+      if(!lock){ lock = document.createElement("div"); lock.className = "plan-lock"; panel.appendChild(lock); }
+      lock.innerHTML = planLockHTML(f); lock.hidden = false;
+    } else if(lock){ lock.hidden = true; }
+  });
+  var sel = document.getElementById("planSelect");
+  if(sel && sel.value !== curPlan()) sel.value = curPlan();
+  var badge = document.getElementById("planBadge");
+  if(badge){
+    var cap = unitCap();
+    badge.textContent = PLANS[curPlan()].name + " plan · " + allUnits().length + " / " + (cap === Infinity ? "∞" : cap) + " units";
+  }
+}
+document.getElementById("planSelect").addEventListener("change", function(){
+  DB.plan = this.value; save(); renderAll();
+  toast("Plan set to " + PLANS[curPlan()].name + " — locked features now show their plan");
+});
+
+/* ---------- shared lookups ---------- */
+function allUnits(){
+  var out = [];
+  DB.properties.forEach(function(p){ p.units.forEach(function(u){ out.push({prop:p, unit:u}); }); });
+  return out;
+}
+function findUnit(unitId){
+  for (var i=0;i<DB.properties.length;i++){ var p=DB.properties[i];
+    for (var j=0;j<p.units.length;j++){ if(p.units[j].id===unitId) return {prop:p, unit:p.units[j]}; } }
+  return null;
+}
+function findProp(propId){ return DB.properties.filter(function(p){ return p.id===propId; })[0] || null; }
+function tenantById(tid){ return DB.tenants.filter(function(t){ return t.id===tid; })[0] || null; }
+function tenantOfUnit(unitId){ return DB.tenants.filter(function(t){ return t.unitId===unitId; })[0] || null; }
+function unitTenantName(u){
+  var t = (u.tenantId && tenantById(u.tenantId)) || tenantOfUnit(u.id);
+  if(t) return t.name;
+  return u.tenant || "";
+}
+function unitStatus(u){
+  if(u.status) return u.status;
+  return unitTenantName(u) ? "occupied" : "vacant";
+}
+function unitLeaseEnd(u){
+  var t = (u.tenantId && tenantById(u.tenantId)) || tenantOfUnit(u.id);
+  if(t && t.leaseEnd) return t.leaseEnd;
+  return u.leaseEnd || "";
+}
+function scopeLabel(scope){
+  if(!scope) return "—";
+  var p = findProp(scope); if(p) return p.name + " (whole property)";
+  var f = findUnit(scope); if(f) return f.prop.name + " — " + f.unit.name;
+  return "Deleted property/unit";
+}
+function propIdOfScope(scope){
+  if(findProp(scope)) return scope;
+  var f = findUnit(scope); return f ? f.prop.id : "";
+}
+function scopeOptions(sel, includeAllLabel){
+  var cur = sel.value;
+  var html = DB.properties.map(function(p){
+    var s = '<option value="' + p.id + '">' + esc(p.name) + ' (whole property)</option>';
+    s += p.units.map(function(u){ return '<option value="' + u.id + '">&nbsp;&nbsp;' + esc(p.name) + ' — ' + esc(u.name) + '</option>'; }).join("");
+    return s;
+  }).join("");
+  sel.innerHTML = html || '<option value="">' + (includeAllLabel || "Add a property first") + '</option>';
+  if(cur && sel.querySelector('option[value="' + cur + '"]')) sel.value = cur;
+}
+
+/* ---------- derived money ---------- */
+function payKey(unitId, month){ return unitId + "|" + month; }
+function getPay(unitId, month){ return DB.payments[payKey(unitId, month)] || null; }
+function rentCollected(month, propId){
+  var sum = 0;
+  allUnits().forEach(function(x){
+    if(propId && x.prop.id !== propId) return;
+    var pay = getPay(x.unit.id, month); if(pay) sum += Number(pay.amount)||0;
+  });
+  return sum;
+}
+function monthMoney(month){
+  var rent = rentCollected(month);
+  var inc = DB.income.filter(function(x){ return (x.date||"").slice(0,7)===month; })
+                     .reduce(function(s,x){ return s+(Number(x.amount)||0); }, 0);
+  var exp = DB.expenses.filter(function(x){ return (x.date||"").slice(0,7)===month; })
+                       .reduce(function(s,x){ return s+(Number(x.amount)||0); }, 0);
+  return { rent: rent, income: inc, expenses: exp, net: rent + inc - exp };
+}
+function arrearsList(){
+  var out = [];
+  var cur = monthNow();
+  var monthSet = {}; monthSet[cur] = 1;
+  Object.keys(DB.payments).forEach(function(k){ var m = k.split("|")[1]; if(m) monthSet[m] = 1; });
+  allUnits().forEach(function(x){
+    var u = x.unit;
+    if(unitStatus(u) !== "occupied") return;
+    var rent = Number(u.rent)||0; if(rent <= 0) return;
+    Object.keys(monthSet).forEach(function(m){
+      if(m > cur) return;
+      var rec = getPay(u.id, m);
+      var paid = rec ? (Number(rec.amount)||0) : 0;
+      var owed = rent - paid;
+      if(owed <= 0.004) return;
+      if(!rec && m !== cur) return; /* no record for a past month — can't call it arrears */
+      var dueDay = Math.min(Math.max(Number(u.dueDay)||1, 1), 28);
+      var due = new Date(m + "-01T00:00:00"); due.setDate(dueDay);
+      var today = new Date(todayStr() + "T00:00:00");
+      var daysLate = Math.round((today - due)/86400000);
+      if(!rec && daysLate < 0) return; /* current month, due day hasn't arrived, nothing recorded */
+      var t = (u.tenantId && tenantById(u.tenantId)) || tenantOfUnit(u.id);
+      var feeApplied = (DB.lateFeesApplied || []).some(function(f){ return f.unitId === u.id && f.month === m; });
+      out.push({ prop: x.prop, unit: u, tenant: unitTenantName(u), month: m, owed: owed,
+                 daysLate: Math.max(daysLate, 0), status: rec ? rec.status : "not recorded",
+                 lateFee: t ? (Number(t.lateFee)||0) : 0, feeApplied: feeApplied });
+    });
+  });
+  out.sort(function(a,b){ return b.owed - a.owed || b.daysLate - a.daysLate; });
+  return out;
+}
+function expiringLeases(){
+  var out = [];
+  DB.tenants.forEach(function(t){
+    var d = daysUntil(t.leaseEnd);
+    if(d !== null && d >= 0 && d <= 60){
+      var f = t.unitId ? findUnit(t.unitId) : null;
+      out.push({ label: t.name + (f ? " — " + f.prop.name + " / " + f.unit.name : ""), end: t.leaseEnd, days: d });
+    }
+  });
+  allUnits().forEach(function(x){
+    if(tenantOfUnit(x.unit.id)) return;
+    var end = x.unit.leaseEnd; var d = daysUntil(end);
+    if(end && d !== null && d >= 0 && d <= 60)
+      out.push({ label: x.prop.name + " / " + x.unit.name, end: end, days: d });
+  });
+  out.sort(function(a,b){ return a.days - b.days; });
+  return out;
+}
+
+/* ================= Tabs ================= */
+var TABS = ["dashboard","rent","applications","leases","properties","tenants","tenantview","maintenance","money","documents","inspection","tasks","vendors","notes"];
+document.getElementById("tabs").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-tab]"); if(!b) return;
+  document.querySelectorAll("#tabs button").forEach(function(x){ x.classList.toggle("active", x===b); });
+  TABS.forEach(function(t){ document.getElementById("panel-"+t).hidden = (t !== b.dataset.tab); });
+  renderAll();
+});
+
+/* ================= Dashboard ================= */
+function renderDashboard(){
+  var units = allUnits();
+  var totalUnits = units.length;
+  var occupied = units.filter(function(x){ return unitStatus(x.unit) === "occupied"; }).length;
+  var occPct = totalUnits ? Math.round(occupied/totalUnits*100) : 0;
+  var m = monthNow();
+  var expected = units.reduce(function(s,x){ return s + (Number(x.unit.rent)||0); }, 0);
+  var mm = monthMoney(m);
+  var arr = arrearsList();
+  var arrTotal = arr.reduce(function(s,a){ return s + a.owed; }, 0);
+  var openMt = DB.maintenance.filter(function(x){ return x.status !== "done"; }).length;
+  var leases = expiringLeases();
+  var netColor = mm.net < 0 ? "var(--bad)" : "var(--brand)";
+
+  document.getElementById("dashSummary").innerHTML =
+    '<div class="stat"><div class="label">Portfolio</div><div class="value">' + DB.properties.length + ' properties</div><div class="note">' + totalUnits + ' unit(s) total</div></div>' +
+    '<div class="stat"><div class="label">Occupancy</div><div class="value">' + occPct + '%</div><div class="progressbar"><div style="width:' + occPct + '%"></div></div><div class="note">' + occupied + ' of ' + totalUnits + ' unit(s) occupied</div></div>' +
+    '<div class="stat"><div class="label">Expected rent — ' + esc(m) + '</div><div class="value">' + money(expected) + '</div><div class="note">All units at full rent</div></div>' +
+    '<div class="stat"><div class="label">Collected — ' + esc(m) + '</div><div class="value">' + money(mm.rent) + '</div><div class="note">Plus ' + money(mm.income) + ' other income</div></div>' +
+    '<div class="stat"><div class="label">Arrears outstanding</div><div class="value" style="color:' + (arrTotal>0 ? "var(--bad)" : "var(--brand)") + '">' + money(arrTotal) + '</div><div class="note">' + arr.length + ' open balance(s) — see Rent &amp; Payments</div></div>' +
+    '<div class="stat"><div class="label">Expenses — ' + esc(m) + '</div><div class="value">' + money(mm.expenses) + '</div></div>' +
+    '<div class="stat"><div class="label">Net cash flow — ' + esc(m) + '</div><div class="value" style="color:' + netColor + '">' + money(mm.net) + '</div><div class="note">Rent + income − expenses</div></div>' +
+    '<div class="stat"><div class="label">Open maintenance</div><div class="value">' + openMt + '</div><div class="note">request(s) not done</div></div>' +
+    '<div class="stat"><div class="label">Leases expiring ≤ 60 days</div><div class="value">' + leases.length + '</div><div class="note">See list below</div></div>';
+
+  document.getElementById("dashLeases").innerHTML = leases.length
+    ? '<ul>' + leases.map(function(l){
+        return '<li><strong>' + esc(l.label) + '</strong> — ends ' + fmtDate(l.end) +
+               ' <span class="pill soon">' + (l.days === 0 ? "today" : l.days + " day(s)") + '</span></li>';
+      }).join("") + '</ul>'
+    : '<div class="allclear">No leases expire in the next 60 days.</div>';
+
+  document.getElementById("dashArrears").innerHTML = arr.length
+    ? '<ul>' + arr.slice(0,6).map(function(a){
+        return '<li><strong>' + esc(a.tenant || a.unit.name) + '</strong> (' + esc(a.prop.name) + ' — ' + esc(a.unit.name) + ') owes <strong>' +
+               money(a.owed) + '</strong> for ' + esc(a.month) + (a.daysLate > 0 ? ' — ' + a.daysLate + ' day(s) late' : '') + '</li>';
+      }).join("") + '</ul>' + (arr.length > 6 ? '<div class="sub">…and ' + (arr.length-6) + ' more in Rent &amp; Payments.</div>' : '')
+    : '<div class="allclear">Nobody owes rent. Every occupied unit is current.</div>';
+
+  var openTasks = DB.tasks.filter(function(t){ return !t.done; })
+    .sort(function(a,b){ return (a.due||"9999") < (b.due||"9999") ? -1 : 1; });
+  var openMtList = DB.maintenance.filter(function(x){ return x.status !== "done"; });
+  var parts = [];
+  if(openMtList.length){
+    parts.push('<li><strong>' + openMtList.length + ' maintenance request(s)</strong> open' +
+      openMtList.slice(0,3).map(function(x){ return '<br>• ' + esc(x.issue) + ' (' + esc(scopeLabel(x.scope)) + ')'; }).join("") + '</li>');
+  }
+  if(openTasks.length){
+    parts.push('<li><strong>' + openTasks.length + ' task(s)</strong> open' +
+      openTasks.slice(0,3).map(function(t){
+        var d = daysUntil(t.due);
+        var flag = d !== null && d < 0 ? ' <span class="overdue">overdue</span>' : (t.due ? ' — due ' + fmtDate(t.due) : '');
+        return '<br>• ' + esc(t.title) + flag;
+      }).join("") + '</li>');
+  }
+  document.getElementById("dashWork").innerHTML = parts.length
+    ? '<ul>' + parts.join("") + '</ul>'
+    : '<div class="allclear">No open maintenance and no open tasks.</div>';
+}
+
+/* ================= Rent tracker ================= */
+var rentMonthEl = document.getElementById("rentMonth");
+rentMonthEl.value = monthNow();
+rentMonthEl.addEventListener("change", renderRent);
+document.getElementById("thisMonthBtn").addEventListener("click", function(){ rentMonthEl.value = monthNow(); renderRent(); });
+
+var METHODS = ["", "Cash", "Check", "Zelle", "Venmo", "Cash App", "Bank transfer", "Money order", "Other"];
+function methodOptions(cur){
+  return METHODS.map(function(mo){
+    return '<option value="' + esc(mo) + '"' + (cur===mo ? " selected" : "") + '>' + (mo || "—") + '</option>';
+  }).join("");
+}
+function ensurePay(unitId, month){
+  var k = payKey(unitId, month);
+  if(!DB.payments[k]) DB.payments[k] = {status:"", amount:"", date:"", method:""};
+  return DB.payments[k];
+}
+
+function renderRent(){
+  var month = rentMonthEl.value || monthNow();
+  var units = allUnits();
+  var expected = 0, collected = 0, paidCount = 0, openCount = 0;
+  units.forEach(function(x){
+    expected += Number(x.unit.rent)||0;
+    var pay = getPay(x.unit.id, month);
+    if(pay){ collected += Number(pay.amount)||0; if(pay.status==="paid") paidCount++; else openCount++; }
+    else openCount++;
+  });
+  var pct = expected>0 ? Math.round(collected/expected*100) : 0;
+  document.getElementById("rentSummary").innerHTML =
+    '<div class="stat"><div class="label">Expected — ' + esc(month) + '</div><div class="value">' + money(expected) + '</div><div class="note">' + units.length + ' unit(s)</div></div>' +
+    '<div class="stat"><div class="label">Collected</div><div class="value">' + money(collected) + '</div><div class="progressbar"><div style="width:' + pct + '%"></div></div><div class="note">' + pct + '% of expected</div></div>' +
+    '<div class="stat"><div class="label">Still out</div><div class="value">' + money(expected-collected) + '</div><div class="note">' + openCount + ' unit(s) not fully paid</div></div>' +
+    '<div class="stat"><div class="label">Paid in full</div><div class="value">' + paidCount + '</div><div class="note">of ' + units.length + ' unit(s)</div></div>';
+
+  var wrap = document.getElementById("rentTableWrap");
+  if(!units.length){
+    wrap.innerHTML = '<div class="empty">No units yet. Go to <strong>Properties &amp; Units</strong> to add your first property and unit — or click <strong>Load demo data</strong> above to explore.</div>';
+  } else {
+    var rows = units.map(function(x){
+      var pay = getPay(x.unit.id, month);
+      var status = pay ? pay.status : "";
+      var amt = pay ? pay.amount : "";
+      var pdate = pay ? (pay.date || "") : "";
+      var pmethod = pay ? (pay.method || "") : "";
+      var pill = !pay ? '<span class="pill none">Not recorded</span>'
+        : status==="paid" ? '<span class="pill paid">Paid</span>'
+        : status==="partial" ? '<span class="pill partial">Partial</span>'
+        : status==="unpaid" ? '<span class="pill unpaid">Unpaid</span>'
+        : '<span class="pill none">Not recorded</span>';
+      return '<tr>' +
+        '<td><strong>' + esc(x.prop.name) + '</strong><br><small>' + esc(x.unit.name) + '</small></td>' +
+        '<td>' + esc(unitTenantName(x.unit) || "—") + '</td>' +
+        '<td>' + money(x.unit.rent) + '</td>' +
+        '<td><select data-pay-status="' + x.unit.id + '">' +
+          '<option value=""' + (status===""?" selected":"") + '>— set —</option>' +
+          '<option value="paid"' + (status==="paid"?" selected":"") + '>Paid</option>' +
+          '<option value="partial"' + (status==="partial"?" selected":"") + '>Partial</option>' +
+          '<option value="unpaid"' + (status==="unpaid"?" selected":"") + '>Unpaid</option>' +
+        '</select></td>' +
+        '<td><input type="number" min="0" step="0.01" placeholder="0.00" data-pay-amt="' + x.unit.id + '" value="' + esc(amt) + '"></td>' +
+        '<td><input type="date" data-pay-date="' + x.unit.id + '" value="' + esc(pdate) + '"></td>' +
+        '<td><select data-pay-method="' + x.unit.id + '">' + methodOptions(pmethod) + '</select></td>' +
+        '<td>' + pill + '</td></tr>';
+    }).join("");
+    wrap.innerHTML = '<table><thead><tr><th>Property / Unit</th><th>Tenant</th><th>Rent due</th><th>Status</th><th>Amount received</th><th>Date paid</th><th>Method</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+
+    wrap.querySelectorAll("[data-pay-status]").forEach(function(sel){
+      sel.addEventListener("change", function(){
+        var unitId = sel.getAttribute("data-pay-status");
+        var found = findUnit(unitId); if(!found) return;
+        if(sel.value === ""){ delete DB.payments[payKey(unitId, month)]; save(); renderRent(); renderDashboard(); return; }
+        var cur = ensurePay(unitId, month);
+        cur.status = sel.value;
+        if(sel.value==="paid" && (cur.amount==="" || cur.amount==null || Number(cur.amount)===0)) cur.amount = Number(found.unit.rent)||0;
+        if(sel.value==="unpaid") cur.amount = 0;
+        if(sel.value==="paid" && !cur.date) cur.date = todayStr();
+        save(); renderRent(); renderDashboard();
+      });
+    });
+    wrap.querySelectorAll("[data-pay-amt]").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        var unitId = inp.getAttribute("data-pay-amt");
+        var found = findUnit(unitId); if(!found) return;
+        var val = Number(inp.value)||0;
+        var cur = ensurePay(unitId, month);
+        cur.amount = val;
+        var rent = Number(found.unit.rent)||0;
+        if(!cur.status){ cur.status = val>=rent && rent>0 ? "paid" : (val>0 ? "partial" : "unpaid"); }
+        else if(cur.status==="paid" && val<rent) cur.status = "partial";
+        else if(cur.status!=="unpaid" && val>=rent && rent>0) cur.status = "paid";
+        if(val>0 && !cur.date) cur.date = todayStr();
+        save(); renderRent(); renderDashboard();
+      });
+    });
+    wrap.querySelectorAll("[data-pay-date]").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        var cur = ensurePay(inp.getAttribute("data-pay-date"), month);
+        cur.date = inp.value; save(); renderHistory();
+      });
+    });
+    wrap.querySelectorAll("[data-pay-method]").forEach(function(sel){
+      sel.addEventListener("change", function(){
+        var cur = ensurePay(sel.getAttribute("data-pay-method"), month);
+        cur.method = sel.value; save(); renderHistory();
+      });
+    });
+  }
+  renderArrears();
+  renderHistory();
+}
+
+function renderArrears(){
+  var wrap = document.getElementById("arrearsWrap");
+  var arr = arrearsList();
+  if(!arr.length){
+    wrap.innerHTML = '<div class="empty">No arrears. Every occupied unit is current.</div>';
+    if(typeof renderReminders === "function") renderReminders();
+    return;
+  }
+  var total = arr.reduce(function(s,a){ return s + a.owed; }, 0);
+  var suggested = arr.filter(function(a){ return a.lateFee > 0 && a.daysLate >= 5 && !a.feeApplied; })
+                     .reduce(function(s,a){ return s + a.lateFee; }, 0);
+  wrap.innerHTML = '<table><thead><tr><th>Tenant</th><th>Property / Unit</th><th>Month</th><th>Owed</th><th>Days late</th><th>Status</th><th>Late fee</th></tr></thead><tbody>' +
+    arr.map(function(a){
+      var feeCell;
+      if(a.lateFee <= 0) feeCell = "—";
+      else if(a.feeApplied) feeCell = money(a.lateFee) + ' <span class="pill done">Applied</span>';
+      else if(a.daysLate >= 5) feeCell = hasFeature("latefees")
+        ? money(a.lateFee) + ' <button class="btn secondary small" type="button" data-apply-fee="' + a.unit.id + '|' + a.month + '">Apply fee</button>'
+        : money(a.lateFee) + ' <span class="pill none">🔒 ' + esc(PLANS[FEATURE_INFO.latefees.min].name) + ' to apply</span>';
+      else feeCell = money(a.lateFee) + ' <span class="sub">suggested at 5+ days late</span>';
+      return '<tr><td><strong>' + esc(a.tenant || "—") + '</strong></td><td>' + esc(a.prop.name) + ' — ' + esc(a.unit.name) + '</td>' +
+        '<td>' + esc(a.month) + '</td><td><strong>' + money(a.owed) + '</strong></td>' +
+        '<td>' + (a.daysLate > 0 ? '<span class="overdue">' + a.daysLate + '</span>' : '0') + '</td>' +
+        '<td>' + esc(a.status) + '</td><td>' + feeCell + '</td></tr>';
+    }).join("") + '</tbody></table>' +
+    '<p class="sub" style="margin-top:8px">Total outstanding: <strong>' + money(total) + '</strong>' +
+    (suggested > 0 ? ' · Suggested late fees not yet applied: <strong>' + money(suggested) + '</strong>' : '') + '</p>';
+  wrap.querySelectorAll("[data-apply-fee]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var parts = b.getAttribute("data-apply-fee").split("|");
+      var unitId = parts[0], month = parts[1];
+      var entry = arrearsList().filter(function(a){ return a.unit.id === unitId && a.month === month; })[0];
+      if(!entry || entry.lateFee <= 0 || entry.feeApplied) return;
+      var inc = { id: uid(), date: todayStr(), scope: unitId, category: "Late fees",
+                  amount: entry.lateFee,
+                  note: "Late fee — " + (entry.tenant || entry.unit.name) + " — " + month + " rent (" + entry.daysLate + " days late)" };
+      DB.income.push(inc);
+      DB.lateFeesApplied.push({ id: uid(), unitId: unitId, month: month, amount: entry.lateFee, date: todayStr(), incomeId: inc.id });
+      save(); renderAll(); toast("Late fee of " + money(entry.lateFee) + " applied");
+    });
+  });
+  if(typeof renderReminders === "function") renderReminders();
+}
+
+function renderHistory(){
+  var wrap = document.getElementById("historyWrap");
+  var rows = [];
+  Object.keys(DB.payments).forEach(function(k){
+    var parts = k.split("|"); var unitId = parts[0], month = parts[1];
+    var rec = DB.payments[k];
+    if(!rec || (rec.amount === "" && !rec.status)) return;
+    var f = findUnit(unitId);
+    rows.push({ month: month, date: rec.date || "", prop: f ? f.prop.name : "(deleted unit)",
+      unit: f ? f.unit.name : "", tenant: f ? unitTenantName(f.unit) : "",
+      amount: Number(rec.amount)||0, method: rec.method || "", status: rec.status || "" });
+  });
+  rows.sort(function(a,b){
+    var ka = (a.date || a.month), kb = (b.date || b.month);
+    return ka < kb ? 1 : (ka > kb ? -1 : 0);
+  });
+  if(!rows.length){
+    wrap.innerHTML = '<div class="empty">No payments recorded yet. Payments you mark in the tracker above will appear here with their dates and methods.</div>';
+    return;
+  }
+  wrap.innerHTML = '<table><thead><tr><th>Month</th><th>Date paid</th><th>Property / Unit</th><th>Tenant</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead><tbody>' +
+    rows.map(function(r){
+      var pill = r.status==="paid" ? '<span class="pill paid">Paid</span>'
+        : r.status==="partial" ? '<span class="pill partial">Partial</span>'
+        : r.status==="unpaid" ? '<span class="pill unpaid">Unpaid</span>' : '<span class="pill none">—</span>';
+      return '<tr><td>' + esc(r.month) + '</td><td>' + (r.date ? fmtDate(r.date) : "—") + '</td>' +
+        '<td>' + esc(r.prop) + ' — ' + esc(r.unit) + '</td><td>' + esc(r.tenant || "—") + '</td>' +
+        '<td>' + money(r.amount) + '</td><td>' + esc(r.method || "—") + '</td><td>' + pill + '</td></tr>';
+    }).join("") + '</tbody></table>';
+}
+</script>
+
+<script>
+"use strict";
+/* ================= Properties & units ================= */
+document.getElementById("propForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var name = document.getElementById("propName").value.trim(); if(!name) return;
+  DB.properties.push({ id: uid(), name: name, address: document.getElementById("propAddr").value.trim(), units: [] });
+  document.getElementById("propName").value = ""; document.getElementById("propAddr").value = "";
+  save(); renderAll(); toast("Property added");
+});
+
+var STATUS_OPTS = ["occupied","vacant","listed"];
+function statusPill(st){
+  return st === "occupied" ? '<span class="pill paid">Occupied</span>'
+       : st === "listed" ? '<span class="pill info">Listed</span>'
+       : '<span class="pill none">Vacant</span>';
+}
+function tenantOptionsFor(unit){
+  var cur = unit.tenantId || "";
+  var opts = '<option value="">— no tenant —</option>';
+  DB.tenants.forEach(function(t){
+    if(t.unitId && t.unitId !== unit.id && findUnit(t.unitId)) return; /* already placed elsewhere */
+    opts += '<option value="' + t.id + '"' + (cur === t.id ? " selected" : "") + '>' + esc(t.name) + '</option>';
+  });
+  return opts;
+}
+
+function renderProperties(){
+  var list = document.getElementById("propList");
+  if(!DB.properties.length){
+    list.innerHTML = '<div class="empty">No properties yet. Add your first property above.</div>';
+    return;
+  }
+  list.innerHTML = DB.properties.map(function(p){
+    var unitRows = p.units.length ? '<table><thead><tr><th>Unit</th><th>Rent / mo</th><th>Status</th><th>Due day</th><th>Deposit held</th><th>Size</th><th>Tenant</th><th>Lease ends</th><th></th></tr></thead><tbody>' +
+      p.units.map(function(u){
+        var size = [u.sqft ? u.sqft + " sq ft" : "", u.beds ? u.beds + " bd" : "", u.baths ? u.baths + " ba" : ""].filter(Boolean).join(" · ") || "—";
+        return '<tr><td><strong>' + esc(u.name) + '</strong></td><td>' + money(u.rent) + '</td>' +
+          '<td>' + statusPill(unitStatus(u)) + '</td><td>' + esc(u.dueDay || 1) + '</td>' +
+          '<td>' + money(u.deposit) + '</td><td>' + esc(size) + '</td>' +
+          '<td>' + esc(unitTenantName(u) || "—") + '</td><td>' + (unitLeaseEnd(u) ? fmtDate(unitLeaseEnd(u)) : "—") + '</td>' +
+          '<td><button class="btn danger small" type="button" data-del-unit="' + p.id + '|' + u.id + '">Remove</button></td></tr>';
+      }).join("") + '</tbody></table>'
+      : '<p class="sub">No units yet — add the first one below.</p>';
+    return '<div class="prop">' +
+      '<div class="prop-head"><span class="name">' + esc(p.name) + '</span><span class="addr">' + esc(p.address || "") + '</span><span class="spacer"></span>' +
+      '<button class="btn danger small" type="button" data-del-prop="' + p.id + '">Delete property</button></div>' +
+      unitRows +
+      '<form class="inline" data-unit-form="' + p.id + '">' +
+        '<div class="field"><label>Unit name</label><input required placeholder="Unit 1 / Apt A" data-uf="name"></div>' +
+        '<div class="field"><label>Rent ($/mo)</label><input type="number" min="0" step="0.01" required placeholder="850" data-uf="rent"></div>' +
+        '<div class="field"><label>Status</label><select data-uf="status"><option value="occupied">Occupied</option><option value="vacant">Vacant</option><option value="listed">Listed</option></select></div>' +
+        '<div class="field"><label>Due day</label><input type="number" min="1" max="31" value="1" data-uf="dueDay"></div>' +
+        '<div class="field"><label>Deposit held ($)</label><input type="number" min="0" step="0.01" placeholder="0.00" data-uf="deposit"></div>' +
+        '<div class="field"><label>Sq ft</label><input type="number" min="0" placeholder="800" data-uf="sqft"></div>' +
+        '<div class="field"><label>Beds</label><input type="number" min="0" step="0.5" placeholder="2" data-uf="beds"></div>' +
+        '<div class="field"><label>Baths</label><input type="number" min="0" step="0.5" placeholder="1" data-uf="baths"></div>' +
+        '<div class="field"><label>Tenant</label><select data-uf="tenantId">' + tenantOptionsFor({id:"", tenantId:""}) + '</select></div>' +
+        '<button class="btn secondary" type="submit">+ Add unit</button>' +
+      '</form></div>';
+  }).join("");
+
+  list.querySelectorAll("[data-del-prop]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var pid = b.getAttribute("data-del-prop");
+      if(!confirm("Delete this property and all its units, tenants, payments, maintenance, notes, and checklist data?")) return;
+      var prop = findProp(pid);
+      var unitIds = prop ? prop.units.map(function(u){ return u.id; }) : [];
+      unitIds.forEach(function(unid){
+        Object.keys(DB.payments).forEach(function(k){ if(k.indexOf(unid+"|")===0) delete DB.payments[k]; });
+      });
+      DB.tenants = DB.tenants.filter(function(t){ return unitIds.indexOf(t.unitId) === -1; });
+      DB.expenses = DB.expenses.filter(function(x){ return x.scope !== pid && unitIds.indexOf(x.scope) === -1; });
+      DB.income = DB.income.filter(function(x){ return x.scope !== pid && unitIds.indexOf(x.scope) === -1; });
+      DB.maintenance = DB.maintenance.filter(function(x){ return x.scope !== pid && unitIds.indexOf(x.scope) === -1; });
+      DB.tasks = DB.tasks.filter(function(t){ return t.propId !== pid; });
+      DB.notes = DB.notes.filter(function(n){ return n.propId !== pid; });
+      delete DB.inspections[pid];
+      DB.properties = DB.properties.filter(function(p){ return p.id!==pid; });
+      save(); renderAll(); toast("Property deleted");
+    });
+  });
+  list.querySelectorAll("[data-del-unit]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var parts = b.getAttribute("data-del-unit").split("|"); var pid = parts[0], unid = parts[1];
+      if(!confirm("Remove this unit? Its rent records, and any tenant linked only to it, will also be removed.")) return;
+      var prop = findProp(pid);
+      if(prop) prop.units = prop.units.filter(function(u){ return u.id!==unid; });
+      Object.keys(DB.payments).forEach(function(k){ if(k.indexOf(unid+"|")===0) delete DB.payments[k]; });
+      DB.tenants = DB.tenants.filter(function(t){ return t.unitId !== unid; });
+      DB.expenses = DB.expenses.filter(function(x){ return x.scope !== unid; });
+      DB.income = DB.income.filter(function(x){ return x.scope !== unid; });
+      DB.maintenance = DB.maintenance.filter(function(x){ return x.scope !== unid; });
+      save(); renderAll(); toast("Unit removed");
+    });
+  });
+  list.querySelectorAll("[data-unit-form]").forEach(function(f){
+    f.addEventListener("submit", function(e){
+      e.preventDefault();
+      var pid = f.getAttribute("data-unit-form");
+      var prop = findProp(pid); if(!prop) return;
+      if(allUnits().length >= unitCap()){
+        var ri = planRank(curPlan()), next = ri < PLAN_ORDER.length - 1 ? PLANS[PLAN_ORDER[ri + 1]] : null;
+        alert("Your " + PLANS[curPlan()].name + " plan covers up to " + unitCap() + " units, and you already have " +
+          allUnits().length + ". " + (next ? "Upgrade to the " + next.name + " plan (" + next.price + ", up to " +
+          (next.cap > 0 ? next.cap : "unlimited") + " units) to add more." : ""));
+        return;
+      }
+      var g = function(k){ return f.querySelector('[data-uf="' + k + '"]').value; };
+      var nu = { id: uid(), name: g("name").trim(), rent: Number(g("rent"))||0,
+        status: g("status"), dueDay: Math.min(Math.max(Number(g("dueDay"))||1,1),31),
+        deposit: Number(g("deposit"))||0, sqft: g("sqft"), beds: g("beds"), baths: g("baths"),
+        tenantId: g("tenantId"), tenant: "", leaseEnd: "" };
+      prop.units.push(nu);
+      if(nu.tenantId){
+        var t = tenantById(nu.tenantId);
+        if(t){
+          if(t.unitId && t.unitId !== nu.id){ var old = findUnit(t.unitId); if(old){ old.unit.tenantId = ""; old.unit.tenant = ""; } }
+          t.unitId = nu.id;
+          if(t.deposit) nu.deposit = Number(t.deposit)||0;
+          nu.status = "occupied";
+        }
+      }
+      save(); renderAll(); toast("Unit added");
+    });
+  });
+}
+
+/* ================= Tenants ================= */
+function fillTenantUnitSelect(){
+  var sel = document.getElementById("tUnit");
+  var cur = sel.value;
+  var html = '<option value="">— no unit —</option>' + DB.properties.map(function(p){
+    return p.units.map(function(u){
+      return '<option value="' + u.id + '">' + esc(p.name) + ' — ' + esc(u.name) + '</option>';
+    }).join("");
+  }).join("");
+  sel.innerHTML = html;
+  if(cur && sel.querySelector('option[value="' + cur + '"]')) sel.value = cur;
+}
+document.getElementById("tenantForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var name = document.getElementById("tName").value.trim(); if(!name) return;
+  var unitId = document.getElementById("tUnit").value;
+  var t = { id: uid(), name: name,
+    phone: document.getElementById("tPhone").value.trim(),
+    email: document.getElementById("tEmail").value.trim(),
+    unitId: unitId,
+    leaseStart: document.getElementById("tLeaseStart").value,
+    leaseEnd: document.getElementById("tLeaseEnd").value,
+    deposit: Number(document.getElementById("tDeposit").value)||0,
+    lateFee: Number(document.getElementById("tLateFee").value)||0 };
+  DB.tenants.push(t);
+  if(unitId){
+    var f = findUnit(unitId);
+    if(f){
+      var prev = tenantOfUnit(unitId);
+      if(prev && prev.id !== t.id){ prev.unitId = ""; }
+      f.unit.tenantId = t.id; f.unit.tenant = t.name; f.unit.status = "occupied";
+      if(t.deposit) f.unit.deposit = t.deposit;
+      f.unit.leaseEnd = t.leaseEnd || f.unit.leaseEnd || "";
+    }
+  }
+  ["tName","tPhone","tEmail","tLeaseStart","tLeaseEnd","tDeposit","tLateFee"].forEach(function(id){ document.getElementById(id).value = ""; });
+  save(); renderAll(); toast("Tenant added");
+});
+
+function renderTenants(){
+  fillTenantUnitSelect();
+  var wrap = document.getElementById("tenantList");
+  if(!DB.tenants.length){
+    wrap.innerHTML = '<div class="empty">No tenants yet. Add your first tenant above — link them to a unit and their lease dates will drive the Dashboard reminders.</div>';
+    return;
+  }
+  var sorted = DB.tenants.slice().sort(function(a,b){ return a.name < b.name ? -1 : 1; });
+  wrap.innerHTML = '<table><thead><tr><th>Tenant</th><th>Contact</th><th>Unit</th><th>Lease</th><th>Deposit held</th><th>Late fee</th><th></th></tr></thead><tbody>' +
+    sorted.map(function(t){
+      var f = t.unitId ? findUnit(t.unitId) : null;
+      var contact = [esc(t.phone || ""), esc(t.email || "")].filter(Boolean).join("<br>") || "—";
+      var d = daysUntil(t.leaseEnd);
+      var leaseTxt = (t.leaseStart ? fmtDate(t.leaseStart) + " → " : "") + (t.leaseEnd ? fmtDate(t.leaseEnd) : "—");
+      var flag = "";
+      if(d !== null && d >= 0 && d <= 60) flag = ' <span class="pill soon">ends in ' + d + 'd</span>';
+      else if(d !== null && d < 0) flag = ' <span class="pill unpaid">ended</span>';
+      return '<tr><td><strong>' + esc(t.name) + '</strong></td><td>' + contact + '</td>' +
+        '<td>' + (f ? esc(f.prop.name) + ' — ' + esc(f.unit.name) : '<span class="pill none">No unit</span>') + '</td>' +
+        '<td>' + leaseTxt + flag + '</td><td>' + money(t.deposit) + '</td><td>' + (t.lateFee > 0 ? money(t.lateFee) : "—") + '</td>' +
+        '<td><button class="btn danger small" type="button" data-del-tenant="' + t.id + '">Remove</button></td></tr>';
+    }).join("") + '</tbody></table>';
+  wrap.querySelectorAll("[data-del-tenant]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var tid = b.getAttribute("data-del-tenant");
+      if(!confirm("Remove this tenant profile? The unit itself stays; it will be unlinked.")) return;
+      var t = tenantById(tid);
+      if(t && t.unitId){ var f = findUnit(t.unitId); if(f && f.unit.tenantId === tid){ f.unit.tenantId = ""; f.unit.tenant = ""; } }
+      DB.tenants = DB.tenants.filter(function(x){ return x.id !== tid; });
+      save(); renderAll(); toast("Tenant removed");
+    });
+  });
+}
+
+/* ================= Maintenance ================= */
+document.getElementById("mtDate").value = todayStr();
+function vendorOptions(cur){
+  var opts = '<option value="">— none —</option>';
+  DB.vendors.forEach(function(v){ opts += '<option value="' + v.id + '"' + (cur === v.id ? " selected" : "") + '>' + esc(v.name) + (v.trade ? " (" + esc(v.trade) + ")" : "") + '</option>'; });
+  return opts;
+}
+function vendorName(vid){ var v = DB.vendors.filter(function(x){ return x.id === vid; })[0]; return v ? v.name : ""; }
+document.getElementById("mtForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var scope = document.getElementById("mtScope").value;
+  if(!scope){ alert("Add a property first, then log maintenance against it."); return; }
+  var issue = document.getElementById("mtIssue").value.trim(); if(!issue) return;
+  DB.maintenance.push({ id: uid(),
+    date: document.getElementById("mtDate").value || todayStr(),
+    scope: scope, issue: issue,
+    priority: document.getElementById("mtPriority").value,
+    vendorId: document.getElementById("mtVendor").value,
+    status: document.getElementById("mtStatus").value,
+    cost: Number(document.getElementById("mtCost").value)||0 });
+  document.getElementById("mtIssue").value = ""; document.getElementById("mtCost").value = "";
+  save(); renderAll(); toast("Maintenance request added");
+});
+function mtPill(st){
+  return st === "done" ? '<span class="pill done">Done</span>'
+       : st === "inprogress" ? '<span class="pill prog">In progress</span>'
+       : '<span class="pill open">Open</span>';
+}
+function prioPill(p){
+  return p === "emergency" ? '<span class="pill unpaid">Emergency</span>'
+       : p === "high" ? '<span class="pill partial">High</span>'
+       : p === "low" ? '<span class="pill none">Low</span>' : '<span class="pill info">Medium</span>';
+}
+function renderMaintenance(){
+  scopeOptions(document.getElementById("mtScope"));
+  var vsel = document.getElementById("mtVendor");
+  var vcur = vsel.value; vsel.innerHTML = vendorOptions(vcur); if(vcur) vsel.value = vcur;
+  var open = 0, prog = 0, done = 0, cost = 0;
+  DB.maintenance.forEach(function(x){
+    if(x.status === "done") done++; else if(x.status === "inprogress") prog++; else open++;
+    cost += Number(x.cost)||0;
+  });
+  document.getElementById("mtOpen").textContent = open;
+  document.getElementById("mtProg").textContent = prog;
+  document.getElementById("mtDone").textContent = done;
+  document.getElementById("mtCostTotal").textContent = money(cost);
+  var wrap = document.getElementById("mtTableWrap");
+  if(!DB.maintenance.length){
+    wrap.innerHTML = '<div class="empty">No maintenance requests yet. Log the first one above.</div>';
+    return;
+  }
+  var rows = DB.maintenance.slice().sort(function(a,b){
+    var rank = function(s){ return s === "done" ? 2 : s === "inprogress" ? 1 : 0; };
+    return rank(a.status) - rank(b.status) || (a.date < b.date ? 1 : -1);
+  });
+  wrap.innerHTML = '<table><thead><tr><th>Date</th><th>Property / Unit</th><th>Issue</th><th>Priority</th><th>Vendor</th><th>Cost</th><th>Status</th><th></th></tr></thead><tbody>' +
+    rows.map(function(x){
+      return '<tr><td>' + fmtDate(x.date) + '</td><td>' + esc(scopeLabel(x.scope)) + '</td><td><strong>' + esc(x.issue) + '</strong></td>' +
+        '<td>' + prioPill(x.priority) + '</td><td>' + esc(vendorName(x.vendorId) || "—") + '</td><td>' + money(x.cost) + '</td>' +
+        '<td><select data-mt-status="' + x.id + '">' +
+          '<option value="open"' + (x.status==="open" ? " selected" : "") + '>Open</option>' +
+          '<option value="inprogress"' + (x.status==="inprogress" ? " selected" : "") + '>In progress</option>' +
+          '<option value="done"' + (x.status==="done" ? " selected" : "") + '>Done</option></select> ' + mtPill(x.status) + '</td>' +
+        '<td><button class="btn danger small" type="button" data-del-mt="' + x.id + '">Delete</button></td></tr>';
+    }).join("") + '</tbody></table>';
+  wrap.querySelectorAll("[data-mt-status]").forEach(function(sel){
+    sel.addEventListener("change", function(){
+      var item = DB.maintenance.filter(function(x){ return x.id === sel.getAttribute("data-mt-status"); })[0];
+      if(item){ item.status = sel.value; save(); renderMaintenance(); renderDashboard(); toast("Status updated"); }
+    });
+  });
+  wrap.querySelectorAll("[data-del-mt]").forEach(function(b){
+    b.addEventListener("click", function(){
+      DB.maintenance = DB.maintenance.filter(function(x){ return x.id !== b.getAttribute("data-del-mt"); });
+      save(); renderMaintenance(); renderDashboard(); toast("Request deleted");
+    });
+  });
+}
+
+/* ================= Vendors ================= */
+document.getElementById("vendorForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var name = document.getElementById("vName").value.trim(); if(!name) return;
+  DB.vendors.push({ id: uid(), name: name,
+    trade: document.getElementById("vTrade").value,
+    phone: document.getElementById("vPhone").value.trim(),
+    email: document.getElementById("vEmail").value.trim(),
+    notes: document.getElementById("vNotes").value.trim() });
+  ["vName","vPhone","vEmail","vNotes"].forEach(function(id){ document.getElementById(id).value = ""; });
+  save(); renderAll(); toast("Vendor added");
+});
+function renderVendors(){
+  var wrap = document.getElementById("vendorList");
+  if(!DB.vendors.length){
+    wrap.innerHTML = '<div class="empty">No vendors yet. Add the people you call — they\'ll be ready to assign on maintenance requests.</div>';
+    return;
+  }
+  wrap.innerHTML = '<table><thead><tr><th>Name / company</th><th>Trade</th><th>Phone</th><th>Email</th><th>Notes</th><th></th></tr></thead><tbody>' +
+    DB.vendors.slice().sort(function(a,b){ return a.name < b.name ? -1 : 1; }).map(function(v){
+      return '<tr><td><strong>' + esc(v.name) + '</strong></td><td>' + esc(v.trade || "—") + '</td>' +
+        '<td>' + esc(v.phone || "—") + '</td><td>' + esc(v.email || "—") + '</td><td>' + esc(v.notes || "—") + '</td>' +
+        '<td><button class="btn danger small" type="button" data-del-vendor="' + v.id + '">Remove</button></td></tr>';
+    }).join("") + '</tbody></table>';
+  wrap.querySelectorAll("[data-del-vendor]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var vid = b.getAttribute("data-del-vendor");
+      DB.maintenance.forEach(function(x){ if(x.vendorId === vid) x.vendorId = ""; });
+      DB.vendors = DB.vendors.filter(function(v){ return v.id !== vid; });
+      save(); renderAll(); toast("Vendor removed");
+    });
+  });
+}
+</script>
+
+<script>
+"use strict";
+/* ================= Money: expenses, other income, P&L, year-end ================= */
+var moneyMonthEl = document.getElementById("moneyMonth");
+moneyMonthEl.value = monthNow();
+moneyMonthEl.addEventListener("change", renderMoney);
+document.getElementById("moneyThisMonthBtn").addEventListener("click", function(){ moneyMonthEl.value = monthNow(); renderMoney(); });
+document.getElementById("expDate").value = todayStr();
+document.getElementById("incDate").value = todayStr();
+var moneyYearEl = document.getElementById("moneyYear");
+moneyYearEl.addEventListener("change", renderYear);
+
+function fillYearSelect(){
+  var years = {};
+  years[new Date().getFullYear()] = 1;
+  DB.expenses.forEach(function(x){ if(x.date) years[x.date.slice(0,4)] = 1; });
+  DB.income.forEach(function(x){ if(x.date) years[x.date.slice(0,4)] = 1; });
+  Object.keys(DB.payments).forEach(function(k){ var m = k.split("|")[1]; if(m) years[m.slice(0,4)] = 1; });
+  var cur = moneyYearEl.value || String(new Date().getFullYear());
+  moneyYearEl.innerHTML = Object.keys(years).sort().reverse().map(function(y){
+    return '<option value="' + y + '"' + (y === cur ? " selected" : "") + '>' + y + '</option>';
+  }).join("");
+  moneyYearEl.value = cur;
+}
+
+function renderMoney(){
+  scopeOptions(document.getElementById("expScope"));
+  scopeOptions(document.getElementById("incScope"));
+  var month = moneyMonthEl.value || monthNow();
+  var mm = monthMoney(month);
+  document.getElementById("plRentIn").textContent = money(mm.rent);
+  document.getElementById("plIncIn").textContent = money(mm.income);
+  document.getElementById("plExpOut").textContent = money(mm.expenses);
+  var netEl = document.getElementById("plNet");
+  netEl.textContent = money(mm.net);
+  netEl.style.color = mm.net < 0 ? "var(--bad)" : "var(--brand)";
+  document.getElementById("plMonthLabel").textContent = month;
+
+  /* Per-property P&L (Portfolio plan and up) */
+  var plWrap = document.getElementById("plWrap");
+  if(!hasFeature("pnl")){
+    plWrap.innerHTML = planLockHTML("pnl");
+  } else if(!DB.properties.length){
+    plWrap.innerHTML = '<div class="empty">Add a property to see its profit &amp; loss here.</div>';
+  } else {
+    var tRent = 0, tInc = 0, tExp = 0;
+    var rowsHtml = DB.properties.map(function(p){
+      var r = rentCollected(month, p.id);
+      var inc = DB.income.filter(function(x){ return (x.date||"").slice(0,7)===month && propIdOfScope(x.scope) === p.id; })
+                         .reduce(function(s,x){ return s+(Number(x.amount)||0); }, 0);
+      var exp = DB.expenses.filter(function(x){ return (x.date||"").slice(0,7)===month && propIdOfScope(x.scope) === p.id; })
+                           .reduce(function(s,x){ return s+(Number(x.amount)||0); }, 0);
+      tRent += r; tInc += inc; tExp += exp;
+      var net = r + inc - exp;
+      return '<tr><td><strong>' + esc(p.name) + '</strong></td><td>' + money(r) + '</td><td>' + money(inc) + '</td><td>' + money(exp) + '</td>' +
+             '<td><strong style="color:' + (net < 0 ? "var(--bad)" : "var(--brand)") + '">' + money(net) + '</strong></td></tr>';
+    }).join("");
+    plWrap.innerHTML = '<table><thead><tr><th>Property</th><th>Rent collected</th><th>Other income</th><th>Expenses</th><th>Net</th></tr></thead><tbody>' + rowsHtml +
+      '<tr><td><strong>Portfolio total</strong></td><td><strong>' + money(tRent) + '</strong></td><td><strong>' + money(tInc) + '</strong></td><td><strong>' + money(tExp) + '</strong></td>' +
+      '<td><strong>' + money(tRent + tInc - tExp) + '</strong></td></tr></tbody></table>';
+  }
+
+  /* Expenses table (month) */
+  var eWrap = document.getElementById("expTableWrap");
+  var eRows = DB.expenses.filter(function(x){ return (x.date||"").slice(0,7) === month; })
+    .sort(function(a,b){ return a.date < b.date ? 1 : -1; });
+  eWrap.innerHTML = eRows.length
+    ? '<table><thead><tr><th>Date</th><th>Property / Unit</th><th>Category</th><th>Note</th><th>Amount</th><th></th></tr></thead><tbody>' +
+      eRows.map(function(x){
+        return '<tr><td>' + fmtDate(x.date) + '</td><td>' + esc(scopeLabel(x.scope)) + '</td><td>' + esc(x.category) + '</td><td>' + esc(x.note || "—") + '</td><td>' + money(x.amount) + '</td>' +
+          '<td><button class="btn danger small" type="button" data-del-exp="' + x.id + '">Delete</button></td></tr>';
+      }).join("") + '</tbody></table>'
+    : '<div class="empty">No expenses logged for ' + esc(month) + ' yet.</div>';
+  eWrap.querySelectorAll("[data-del-exp]").forEach(function(b){
+    b.addEventListener("click", function(){
+      DB.expenses = DB.expenses.filter(function(x){ return x.id !== b.getAttribute("data-del-exp"); });
+      save(); renderMoney(); renderDashboard(); toast("Expense deleted");
+    });
+  });
+
+  /* Other income table (month) */
+  var iWrap = document.getElementById("incTableWrap");
+  var iRows = DB.income.filter(function(x){ return (x.date||"").slice(0,7) === month; })
+    .sort(function(a,b){ return a.date < b.date ? 1 : -1; });
+  iWrap.innerHTML = iRows.length
+    ? '<table><thead><tr><th>Date</th><th>Property / Unit</th><th>Category</th><th>Note</th><th>Amount</th><th></th></tr></thead><tbody>' +
+      iRows.map(function(x){
+        return '<tr><td>' + fmtDate(x.date) + '</td><td>' + esc(scopeLabel(x.scope)) + '</td><td>' + esc(x.category) + '</td><td>' + esc(x.note || "—") + '</td><td>' + money(x.amount) + '</td>' +
+          '<td><button class="btn danger small" type="button" data-del-inc="' + x.id + '">Delete</button></td></tr>';
+      }).join("") + '</tbody></table>'
+    : '<div class="empty">No other income logged for ' + esc(month) + ' yet.</div>';
+  iWrap.querySelectorAll("[data-del-inc]").forEach(function(b){
+    b.addEventListener("click", function(){
+      DB.income = DB.income.filter(function(x){ return x.id !== b.getAttribute("data-del-inc"); });
+      save(); renderMoney(); renderDashboard(); toast("Income entry deleted");
+    });
+  });
+
+  fillYearSelect();
+  renderYear();
+}
+
+document.getElementById("expForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var scope = document.getElementById("expScope").value;
+  if(!scope){ alert("Add a property first, then log expenses against it."); return; }
+  DB.expenses.push({ id: uid(),
+    date: document.getElementById("expDate").value,
+    scope: scope,
+    category: document.getElementById("expCat").value,
+    amount: Number(document.getElementById("expAmt").value)||0,
+    note: document.getElementById("expNote").value.trim() });
+  document.getElementById("expAmt").value = ""; document.getElementById("expNote").value = "";
+  moneyMonthEl.value = (document.getElementById("expDate").value || monthNow()).slice(0,7);
+  save(); renderMoney(); renderDashboard(); toast("Expense added");
+});
+document.getElementById("incForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var scope = document.getElementById("incScope").value;
+  if(!scope){ alert("Add a property first, then log income against it."); return; }
+  DB.income.push({ id: uid(),
+    date: document.getElementById("incDate").value,
+    scope: scope,
+    category: document.getElementById("incCat").value,
+    amount: Number(document.getElementById("incAmt").value)||0,
+    note: document.getElementById("incNote").value.trim() });
+  document.getElementById("incAmt").value = ""; document.getElementById("incNote").value = "";
+  moneyMonthEl.value = (document.getElementById("incDate").value || monthNow()).slice(0,7);
+  save(); renderMoney(); renderDashboard(); toast("Income added");
+});
+
+function renderYear(){
+  var year = moneyYearEl.value || String(new Date().getFullYear());
+  var wrap = document.getElementById("yearWrap");
+  var rentTotal = 0;
+  Object.keys(DB.payments).forEach(function(k){
+    var m = k.split("|")[1];
+    if(m && m.slice(0,4) === year) rentTotal += Number(DB.payments[k].amount)||0;
+  });
+  var incByCat = {}, expByCat = {}, incTotal = 0, expTotal = 0;
+  DB.income.forEach(function(x){ if((x.date||"").slice(0,4) === year){ incByCat[x.category] = (incByCat[x.category]||0) + (Number(x.amount)||0); incTotal += Number(x.amount)||0; } });
+  DB.expenses.forEach(function(x){ if((x.date||"").slice(0,4) === year){ expByCat[x.category] = (expByCat[x.category]||0) + (Number(x.amount)||0); expTotal += Number(x.amount)||0; } });
+  if(rentTotal === 0 && incTotal === 0 && expTotal === 0){
+    wrap.innerHTML = '<div class="empty">Nothing recorded in ' + esc(year) + ' yet. Rent payments, other income, and expenses for the year will be summarized here by category.</div>';
+    return;
+  }
+  var catRows = function(obj){
+    var keys = Object.keys(obj).sort();
+    return keys.length ? keys.map(function(k){ return '<tr><td>' + esc(k) + '</td><td>' + money(obj[k]) + '</td></tr>'; }).join("")
+                       : '<tr><td colspan="2">—</td></tr>';
+  };
+  var net = rentTotal + incTotal - expTotal;
+  wrap.innerHTML =
+    '<table><thead><tr><th>Income — ' + esc(year) + '</th><th>Amount</th></tr></thead><tbody>' +
+    '<tr><td>Rent collected</td><td>' + money(rentTotal) + '</td></tr>' + catRows(incByCat) +
+    '<tr><td><strong>Total income</strong></td><td><strong>' + money(rentTotal + incTotal) + '</strong></td></tr></tbody></table>' +
+    '<table style="margin-top:12px"><thead><tr><th>Expenses — ' + esc(year) + '</th><th>Amount</th></tr></thead><tbody>' +
+    catRows(expByCat) +
+    '<tr><td><strong>Total expenses</strong></td><td><strong>' + money(expTotal) + '</strong></td></tr>' +
+    '<tr><td><strong>Net for ' + esc(year) + '</strong></td><td><strong style="color:' + (net < 0 ? "var(--bad)" : "var(--brand)") + '">' + money(net) + '</strong></td></tr></tbody></table>' +
+    '<p class="sub" style="margin-top:8px">Hand this table to your accountant at tax time — it mirrors the categories on a standard rental schedule. It is a bookkeeping summary, not tax advice.</p>';
+}
+
+/* ================= Inspection checklist ================= */
+var CHECKLIST = [
+  { room:"Living Areas & Bedrooms", items:[
+    ["paint","Paint condition","No peeling, chipping, or deteriorated paint on walls, ceilings, trim."],
+    ["windows","Windows","Open/close/lock properly; no cracked panes; screens in place where required."],
+    ["detectors","Smoke & CO detectors","Present, mounted, and working in every required location."],
+    ["electrical","Electrical","Outlets and switches work; cover plates intact; no exposed wiring."],
+    ["floors","Floors & ceilings","No trip hazards, soft spots, or active water stains."],
+    ["lead","Lead-paint visual check","No deteriorated paint on friction surfaces (windows, doors) in pre-1978 homes."]
+  ]},
+  { room:"Kitchen", items:[
+    ["k_plumb","Plumbing","Faucet works, no leaks under sink, drain runs clear."],
+    ["k_appliances","Appliances","Stove burners and oven work; refrigerator cools and seals."],
+    ["k_elec","Electrical / GFI","GFI outlets near sink present and test/reset correctly."],
+    ["k_paint","Paint & surfaces","Paint intact; counters and cabinets in serviceable condition."],
+    ["k_windows","Windows & ventilation","Window opens or mechanical ventilation works."]
+  ]},
+  { room:"Bathroom", items:[
+    ["b_plumb","Plumbing","Toilet flushes and is secure; tub/shower drains; no leaks."],
+    ["b_gfi","GFI outlet","Present near sink and functional."],
+    ["b_vent","Ventilation","Working fan or an openable window."],
+    ["b_surfaces","Surfaces & caulk","No deteriorated paint; caulk intact; no mold from active leaks."],
+    ["b_water","Hot water","Hot water runs at the tap at a safe, adequate temperature."]
+  ]},
+  { room:"Safety & Structure", items:[
+    ["s_rails","Railings","Secure railings on stairs, porches, and decks (required at 30+ inches)."],
+    ["s_egress","Egress","Bedroom escape windows open; exits and hallways unobstructed."],
+    ["s_heating","Heating","Heat source works in every habitable room."],
+    ["s_waterheater","Water heater","Vented properly, pressure-relief valve present, no leaks."],
+    ["s_locks","Locks & doors","Entry doors lock; unit is secure from the outside."]
+  ]},
+  { room:"Exterior & Common Areas", items:[
+    ["x_paint","Exterior paint","No peeling/chipping paint, especially on pre-1978 surfaces."],
+    ["x_steps","Steps & walkways","Steps, handrails, and walkways sound and free of trip hazards."],
+    ["x_trash","Trash & yard","No accumulated trash or debris; secure trash storage."],
+    ["x_lighting","Lighting","Exterior and common-area lighting works."]
+  ]}
+];
+
+var inspPropEl = document.getElementById("inspProp");
+function inspState(propId){ if(!DB.inspections[propId]) DB.inspections[propId] = {}; return DB.inspections[propId]; }
+
+function renderInspection(){
+  var curPid = inspPropEl.value;
+  inspPropEl.innerHTML = DB.properties.length
+    ? DB.properties.map(function(p){ return '<option value="' + p.id + '">' + esc(p.name) + '</option>'; }).join("")
+    : '<option value="">No properties yet</option>';
+  if(curPid && findProp(curPid)) inspPropEl.value = curPid;
+  var wrap = document.getElementById("checklistWrap");
+  var pid = inspPropEl.value;
+  if(!pid || !DB.properties.length){
+    wrap.innerHTML = '<div class="empty">Add a property first (Properties &amp; Units tab), then run its checklist here.</div>';
+    updateInspScore({});
+    return;
+  }
+  var state = inspState(pid);
+  wrap.innerHTML = CHECKLIST.map(function(room){
+    var items = room.items.map(function(it){
+      var key = room.room + "::" + it[0];
+      var cur = state[key] || {state:"", note:""};
+      return '<div class="checkitem"><div class="item-name">' + esc(it[1]) + '<small>' + esc(it[2]) + '</small></div>' +
+        '<select data-insp-state="' + esc(key) + '">' +
+          '<option value=""' + (cur.state===""?" selected":"") + '>Not checked</option>' +
+          '<option value="pass"' + (cur.state==="pass"?" selected":"") + '>Pass</option>' +
+          '<option value="fail"' + (cur.state==="fail"?" selected":"") + '>Fail</option>' +
+          '<option value="fix"' + (cur.state==="fix"?" selected":"") + '>Fix needed</option>' +
+        '</select>' +
+        '<input class="note" placeholder="Note (optional)" data-insp-note="' + esc(key) + '" value="' + esc(cur.note || "") + '">' +
+      '</div>';
+    }).join("");
+    return '<div class="checkroom"><h4>' + esc(room.room) + '</h4>' + items + '</div>';
+  }).join("");
+
+  wrap.querySelectorAll("[data-insp-state]").forEach(function(sel){
+    sel.addEventListener("change", function(){
+      var key = sel.getAttribute("data-insp-state");
+      var st = inspState(inspPropEl.value);
+      if(!st[key]) st[key] = {state:"", note:""};
+      st[key].state = sel.value; save(); updateInspScore(st);
+    });
+  });
+  wrap.querySelectorAll("[data-insp-note]").forEach(function(inp){
+    inp.addEventListener("change", function(){
+      var key = inp.getAttribute("data-insp-note");
+      var st = inspState(inspPropEl.value);
+      if(!st[key]) st[key] = {state:"", note:""};
+      st[key].note = inp.value; save();
+    });
+  });
+  updateInspScore(state);
+}
+
+function updateInspScore(state){
+  var total = 0, pass = 0, fail = 0, fix = 0;
+  CHECKLIST.forEach(function(room){ room.items.forEach(function(it){
+    total++;
+    var cur = state[room.room + "::" + it[0]];
+    if(cur){ if(cur.state==="pass") pass++; else if(cur.state==="fail") fail++; else if(cur.state==="fix") fix++; }
+  }); });
+  var done = pass + fail + fix;
+  document.getElementById("inspPass").textContent = pass;
+  document.getElementById("inspFail").textContent = fail;
+  document.getElementById("inspFix").textContent = fix;
+  document.getElementById("inspTodo").textContent = total - done;
+  var scoreEl = document.getElementById("inspScore");
+  if(done === 0){ scoreEl.textContent = "—"; document.getElementById("inspBar").style.width = "0%"; document.getElementById("inspScoreNote").textContent = "Mark items to see your score."; return; }
+  var pct = Math.round(pass / done * 100);
+  scoreEl.textContent = pct + "%";
+  document.getElementById("inspBar").style.width = pct + "%";
+  document.getElementById("inspScoreNote").textContent =
+    fail > 0 ? fail + " failing item(s) to correct before inspection day."
+    : fix > 0 ? "No failures — clear the " + fix + " fix-needed item(s) and re-check."
+    : (total - done) > 0 ? "Everything checked so far passes. Finish the remaining " + (total - done) + " item(s)."
+    : "Every item passes. This unit is inspection-ready on this checklist.";
+}
+inspPropEl.addEventListener("change", renderInspection);
+document.getElementById("inspReset").addEventListener("click", function(){
+  var pid = inspPropEl.value; if(!pid) return;
+  if(!confirm("Clear all checklist marks and notes for this property?")) return;
+  DB.inspections[pid] = {}; save(); renderInspection(); toast("Checklist reset");
+});
+
+/* ================= Tasks ================= */
+document.getElementById("taskForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var title = document.getElementById("taskTitle").value.trim(); if(!title) return;
+  DB.tasks.push({ id: uid(), title: title,
+    due: document.getElementById("taskDue").value,
+    propId: document.getElementById("taskProp").value,
+    note: document.getElementById("taskNote").value.trim(), done: false });
+  ["taskTitle","taskDue","taskNote"].forEach(function(id){ document.getElementById(id).value = ""; });
+  save(); renderAll(); toast("Task added");
+});
+function renderTasks(){
+  var sel = document.getElementById("taskProp");
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">— none —</option>' + DB.properties.map(function(p){
+    return '<option value="' + p.id + '">' + esc(p.name) + '</option>';
+  }).join("");
+  if(cur) sel.value = cur;
+  var wrap = document.getElementById("taskList");
+  if(!DB.tasks.length){
+    wrap.innerHTML = '<div class="empty">No tasks yet. Add the first one above.</div>';
+    return;
+  }
+  var rows = DB.tasks.slice().sort(function(a,b){
+    if(a.done !== b.done) return a.done ? 1 : -1;
+    return (a.due || "9999-99") < (b.due || "9999-99") ? -1 : 1;
+  });
+  wrap.innerHTML = '<table><thead><tr><th>Done</th><th>Task</th><th>Due</th><th>Property</th><th>Note</th><th></th></tr></thead><tbody>' +
+    rows.map(function(t){
+      var d = daysUntil(t.due);
+      var dueTxt = t.due ? fmtDate(t.due) : "—";
+      if(!t.done && d !== null && d < 0) dueTxt += ' <span class="pill unpaid">overdue</span>';
+      else if(!t.done && d === 0) dueTxt += ' <span class="pill soon">today</span>';
+      else if(!t.done && d !== null && d <= 14) dueTxt += ' <span class="pill soon">' + d + 'd</span>';
+      var prop = t.propId ? findProp(t.propId) : null;
+      return '<tr>' +
+        '<td><input type="checkbox" data-task-done="' + t.id + '"' + (t.done ? " checked" : "") + '></td>' +
+        '<td><strong' + (t.done ? ' style="text-decoration:line-through;color:var(--muted)"' : '') + '>' + esc(t.title) + '</strong></td>' +
+        '<td>' + dueTxt + '</td><td>' + (prop ? esc(prop.name) : "—") + '</td><td>' + esc(t.note || "—") + '</td>' +
+        '<td><button class="btn danger small" type="button" data-del-task="' + t.id + '">Delete</button></td></tr>';
+    }).join("") + '</tbody></table>';
+  wrap.querySelectorAll("[data-task-done]").forEach(function(cb){
+    cb.addEventListener("change", function(){
+      var t = DB.tasks.filter(function(x){ return x.id === cb.getAttribute("data-task-done"); })[0];
+      if(t){ t.done = cb.checked; save(); renderTasks(); renderDashboard(); }
+    });
+  });
+  wrap.querySelectorAll("[data-del-task]").forEach(function(b){
+    b.addEventListener("click", function(){
+      DB.tasks = DB.tasks.filter(function(x){ return x.id !== b.getAttribute("data-del-task"); });
+      save(); renderTasks(); renderDashboard(); toast("Task deleted");
+    });
+  });
+}
+
+/* ================= Notes & backup ================= */
+document.getElementById("noteForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var pid = document.getElementById("nProp").value;
+  if(!pid){ alert("Add a property first, then attach notes to it."); return; }
+  var title = document.getElementById("nTitle").value.trim(); if(!title) return;
+  DB.notes.push({ id: uid(), propId: pid, title: title,
+    text: document.getElementById("nText").value, date: todayStr() });
+  document.getElementById("nTitle").value = ""; document.getElementById("nText").value = "";
+  save(); renderNotes(); toast("Note added");
+});
+document.getElementById("nFilter").addEventListener("change", renderNotes);
+function renderNotes(){
+  var propOpts = DB.properties.map(function(p){ return '<option value="' + p.id + '">' + esc(p.name) + '</option>'; }).join("");
+  var nProp = document.getElementById("nProp");
+  var curP = nProp.value;
+  nProp.innerHTML = propOpts || '<option value="">Add a property first</option>';
+  if(curP && findProp(curP)) nProp.value = curP;
+  var nf = document.getElementById("nFilter");
+  var curF = nf.value;
+  nf.innerHTML = '<option value="">All properties</option>' + propOpts;
+  if(curF) nf.value = curF;
+  var wrap = document.getElementById("noteList");
+  var rows = DB.notes.filter(function(n){ return !nf.value || n.propId === nf.value; })
+    .sort(function(a,b){ return (a.date||"") < (b.date||"") ? 1 : -1; });
+  if(!rows.length){
+    wrap.innerHTML = '<div class="empty">No notes yet' + (nf.value ? ' for this property' : '') + '. Add the first one above.</div>';
+    return;
+  }
+  wrap.innerHTML = rows.map(function(n){
+    var p = findProp(n.propId);
+    return '<div class="notecard"><div class="nhead"><span class="ntitle">' + esc(n.title) + '</span>' +
+      '<span class="nmeta">' + esc(p ? p.name : "(deleted property)") + ' · ' + fmtDate(n.date) + '</span>' +
+      '<span class="spacer" style="flex:1"></span>' +
+      '<button class="btn danger small" type="button" data-del-note="' + n.id + '">Delete</button></div>' +
+      (n.text ? '<div class="nbody">' + esc(n.text) + '</div>' : '') + '</div>';
+  }).join("");
+  wrap.querySelectorAll("[data-del-note]").forEach(function(b){
+    b.addEventListener("click", function(){
+      DB.notes = DB.notes.filter(function(n){ return n.id !== b.getAttribute("data-del-note"); });
+      save(); renderNotes(); toast("Note deleted");
+    });
+  });
+}
+
+function downloadFile(filename, content, type){
+  var blob = new Blob([content], {type: type});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+}
+document.getElementById("exportJsonBtn").addEventListener("click", function(){
+  downloadFile("landlorddesk-backup-" + todayStr() + ".json", JSON.stringify(DB, null, 2), "application/json");
+  toast("Backup downloaded");
+});
+document.getElementById("exportCsvBtn").addEventListener("click", function(){
+  var q = function(v){ v = String(v == null ? "" : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  var lines = [["Property","Unit","Tenant","Rent","Status","Due Day","Deposit Held","Lease End"].join(",")];
+  allUnits().forEach(function(x){
+    lines.push([x.prop.name, x.unit.name, unitTenantName(x.unit), Number(x.unit.rent)||0,
+      unitStatus(x.unit), x.unit.dueDay || 1, Number(x.unit.deposit)||0, unitLeaseEnd(x.unit)].map(q).join(","));
+  });
+  downloadFile("rent-roll-" + todayStr() + ".csv", lines.join("\n"), "text/csv");
+  toast("Rent roll downloaded");
+});
+document.getElementById("importFile").addEventListener("change", function(e){
+  var file = e.target.files && e.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    try{
+      var parsed = JSON.parse(String(reader.result || ""));
+      if(!parsed || !Array.isArray(parsed.properties)) throw new Error("not a LandlordDesk backup");
+      if(!confirm("Import this backup? It will REPLACE all data currently shown.")) { e.target.value = ""; return; }
+      DB = migrate(parsed);
+      save(); renderAll(); toast("Backup imported");
+    }catch(err){
+      alert("That file could not be imported. Make sure it is a LandlordDesk JSON backup.");
+    }
+    e.target.value = "";
+  };
+  reader.readAsText(file);
+});
+
+/* ================= Header actions & demo data ================= */
+document.getElementById("resetBtn").addEventListener("click", function(){
+  if(!confirm("Clear ALL LandlordDesk data on this device and start over?")) return;
+  DB = defaultData(); save(); renderAll(); toast("All data cleared");
+});
+document.getElementById("demoBtn").addEventListener("click", function(){
+  if(DB.properties.length && !confirm("Demo data will be added alongside your existing data. Continue?")) return;
+  DB.plan = "empire"; /* the demo runs on the full-access trial plan; preview lower tiers with the Plan control in the header */
+  var m = monthNow(), pm = monthPlus(-1);
+  var yearStart = new Date().getFullYear() + "-01-15";
+  var vPlumb = { id: uid(), name:"Carter Plumbing", trade:"Plumbing", phone:"(814) 555-0142", email:"service@carterplumbing.example", notes:"Fast response; charges $95/hr." };
+  var vHvac = { id: uid(), name:"Summit Heating & Air", trade:"HVAC", phone:"(814) 555-0117", email:"", notes:"Annual furnace service contract available." };
+  var vHandy = { id: uid(), name:"Mike D. — Handyman", trade:"Handyman", phone:"(814) 555-0199", email:"", notes:"Good for small jobs; cash or check." };
+  DB.vendors.push(vPlumb, vHvac, vHandy);
+
+  var tMiller = { id: uid(), name:"J. Miller", phone:"(814) 555-0120", email:"jmiller@email.example", unitId:"", leaseStart:"2025-06-01", leaseEnd: datePlus(45), deposit:850, lateFee:50 };
+  var tBrooks = { id: uid(), name:"T. Brooks (Section 8)", phone:"(814) 555-0131", email:"", unitId:"", leaseStart:"2025-03-01", leaseEnd: datePlus(210), deposit:850, lateFee:0 };
+  var tAlvarez = { id: uid(), name:"R. Alvarez", phone:"(814) 555-0154", email:"ralvarez@email.example", unitId:"", leaseStart:"2025-01-01", leaseEnd: datePlus(25), deposit:925, lateFee:50 };
+  var tNguyen = { id: uid(), name:"K. Nguyen", phone:"(814) 555-0173", email:"", unitId:"", leaseStart:"2025-09-01", leaseEnd: datePlus(320), deposit:900, lateFee:50 };
+
+  var p1 = { id: uid(), name:"Maple St Duplex", address:"110 Maple St, Johnstown, PA 15902", units:[
+    { id: uid(), name:"Unit 1 (Downstairs)", rent:850, dueDay:1, deposit:850, sqft:820, beds:2, baths:1, status:"occupied", tenantId:tMiller.id, tenant:"J. Miller", leaseEnd:tMiller.leaseEnd },
+    { id: uid(), name:"Unit 2 (Upstairs)", rent:850, dueDay:1, deposit:850, sqft:860, beds:2, baths:1, status:"occupied", tenantId:tBrooks.id, tenant:"T. Brooks (Section 8)", leaseEnd:tBrooks.leaseEnd }
+  ]};
+  var p2 = { id: uid(), name:"Oak Ave Triplex", address:"48 Oak Ave, Johnstown, PA 15905", units:[
+    { id: uid(), name:"Apt A", rent:925, dueDay:5, deposit:925, sqft:780, beds:2, baths:1, status:"occupied", tenantId:tAlvarez.id, tenant:"R. Alvarez", leaseEnd:tAlvarez.leaseEnd },
+    { id: uid(), name:"Apt B", rent:925, dueDay:5, deposit:0, sqft:780, beds:2, baths:1, status:"listed", tenantId:"", tenant:"", leaseEnd:"" },
+    { id: uid(), name:"Apt C", rent:900, dueDay:5, deposit:900, sqft:740, beds:1, baths:1, status:"occupied", tenantId:tNguyen.id, tenant:"K. Nguyen", leaseEnd:tNguyen.leaseEnd }
+  ]};
+  tMiller.unitId = p1.units[0].id; tBrooks.unitId = p1.units[1].id;
+  tAlvarez.unitId = p2.units[0].id; tNguyen.unitId = p2.units[2].id;
+  DB.tenants.push(tMiller, tBrooks, tAlvarez, tNguyen);
+  DB.properties.push(p1, p2);
+
+  var d = todayStr(), dm = pm + "-06";
+  DB.payments[payKey(p1.units[0].id, pm)] = {status:"paid", amount:850, date: pm + "-01", method:"Zelle"};
+  DB.payments[payKey(p1.units[1].id, pm)] = {status:"paid", amount:850, date: pm + "-03", method:"Bank transfer"};
+  DB.payments[payKey(p2.units[0].id, pm)] = {status:"paid", amount:925, date: pm + "-05", method:"Check"};
+  DB.payments[payKey(p2.units[2].id, pm)] = {status:"partial", amount:400, date: pm + "-12", method:"Cash"};
+  DB.payments[payKey(p1.units[0].id, m)] = {status:"paid", amount:850, date: m + "-01", method:"Zelle"};
+  DB.payments[payKey(p1.units[1].id, m)] = {status:"paid", amount:850, date: m + "-02", method:"Bank transfer"};
+  DB.payments[payKey(p2.units[0].id, m)] = {status:"partial", amount:500, date: m + "-06", method:"Venmo"};
+  DB.payments[payKey(p2.units[2].id, m)] = {status:"unpaid", amount:0, date:"", method:""};
+  DB.income.push(
+    { id: uid(), date: dm, scope: p2.units[2].id, category:"Late fees", amount:50, note:"Late fee — Apt C, prior month" },
+    { id: uid(), date: m + "-08", scope: p2.id, category:"Laundry", amount:42.50, note:"Coin laundry, August jar" }
+  );
+  DB.expenses.push(
+    { id: uid(), date: yearStart, scope: p1.id, category:"Insurance", amount:1180.00, note:"Annual policy — Maple St" },
+    { id: uid(), date: pm + "-18", scope: p2.id, category:"Repairs", amount:340.00, note:"Water heater element — Oak Ave" },
+    { id: uid(), date: m + "-03", scope: p1.id, category:"Water / sewer", amount:112.40, note:"Quarterly bill share" },
+    { id: uid(), date: m + "-09", scope: p1.units[1].id, category:"Repairs", amount:189.00, note:"Kitchen faucet replacement" },
+    { id: uid(), date: m + "-12", scope: p2.id, category:"Lawn / snow", amount:75.00, note:"Monthly lawn service" }
+  );
+  DB.maintenance.push(
+    { id: uid(), date: d, scope: p1.units[1].id, issue:"Kitchen sink draining slowly", priority:"medium", vendorId: vPlumb.id, status:"open", cost:0 },
+    { id: uid(), date: datePlus(-6), scope: p1.id, issue:"Furnace short-cycling — check before winter", priority:"high", vendorId: vHvac.id, status:"inprogress", cost:0 },
+    { id: uid(), date: datePlus(-20), scope: p2.units[0].id, issue:"Porch railing loose", priority:"medium", vendorId: vHandy.id, status:"done", cost:120 }
+  );
+  DB.tasks.push(
+    { id: uid(), title:"Renew lease — Alvarez (Apt A)", due: datePlus(20), propId: p2.id, note:"Lease ends soon; confirm renewal terms.", done:false },
+    { id: uid(), title:"Schedule HQS inspection — Maple St Duplex", due: datePlus(10), propId: p1.id, note:"Run the Inspection Checklist first.", done:false },
+    { id: uid(), title:"Get furnace serviced before winter", due: datePlus(-3), propId: p1.id, note:"Summit Heating — see Vendors.", done:false },
+    { id: uid(), title:"Photograph Apt B for the listing", due: datePlus(30), propId: p2.id, note:"", done:true }
+  );
+  DB.notes.push(
+    { id: uid(), propId: p1.id, title:"Housing authority inspection", text:"Annual inspection expected this fall. Run the checklist in September and fix paint touch-ups in Unit 2 first.", date: datePlus(-12) },
+    { id: uid(), propId: p1.id, title:"Water shutoff location", text:"Main shutoff is in the basement, left wall behind the water heater. Both units share one meter.", date: datePlus(-40) },
+    { id: uid(), propId: p2.id, title:"Apt B listing", text:"Listed at $925 on the 1st. Two showings so far — both asked about laundry; coin machines are in the basement.", date: datePlus(-5) }
+  );
+  var insp = {};
+  insp["Living Areas & Bedrooms::paint"] = {state:"pass", note:""};
+  insp["Living Areas & Bedrooms::detectors"] = {state:"pass", note:"New batteries in June"};
+  insp["Living Areas & Bedrooms::windows"] = {state:"pass", note:""};
+  insp["Kitchen::k_plumb"] = {state:"fix", note:"Slow drain — maintenance request open"};
+  insp["Bathroom::b_vent"] = {state:"pass", note:""};
+  insp["Safety & Structure::s_heating"] = {state:"fix", note:"Furnace short-cycling; Summit scheduled"};
+  DB.inspections[p1.id] = insp;
+  save(); renderAll(); toast("Demo data loaded — start on the Dashboard");
+});
+
+/* ================= Render all ================= */
+function renderAll(){
+  renderDashboard();
+  renderRent();
+  if(typeof renderApplications === "function") renderApplications();
+  if(typeof renderLeases === "function") renderLeases();
+  renderProperties();
+  renderTenants();
+  if(typeof renderTenantView === "function") renderTenantView();
+  renderMaintenance();
+  renderVendors();
+  renderMoney();
+  if(typeof renderDocuments === "function") renderDocuments();
+  renderInspection();
+  renderTasks();
+  renderNotes();
+  applyPlanGates();
+}
+renderAll();
+</script>
+
+<script>
+"use strict";
+/* ================= Feature-max modules (schema v3) =================
+   Applications & screening, lease builder, tenant view, documents,
+   bank import, Schedule E, receipt attach, vacancy listings, reminders.
+   Everything here runs on the same DB / localStorage as the core tabs. */
+function $(id){ return document.getElementById(id); }
+
+var US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
+function stateOptions(cur){
+  return US_STATES.map(function(s){ return '<option value="' + s + '"' + (cur === s ? " selected" : "") + '>' + s + '</option>'; }).join("");
+}
+function unitSelectOptions(sel, includeAll){
+  var cur = sel.value;
+  var html = DB.properties.map(function(p){
+    return p.units.map(function(u){
+      return '<option value="' + u.id + '">' + esc(p.name) + ' — ' + esc(u.name) + ' (' + esc(unitStatus(u)) + ', ' + money(u.rent) + '/mo)</option>';
+    }).join("");
+  }).join("");
+  sel.innerHTML = html || '<option value="">Add a property and unit first</option>';
+  if(cur && sel.querySelector('option[value="' + cur + '"]')) sel.value = cur;
+}
+function readFileAsDataURL(file){
+  return new Promise(function(resolve, reject){
+    var r = new FileReader();
+    r.onload = function(){ resolve(String(r.result || "")); };
+    r.onerror = function(){ reject(new Error("read failed")); };
+    r.readAsDataURL(file);
+  });
+}
+function trySaveDB(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); return true; }
+  catch(e){ return false; }
+}
+function downloadDoc(doc){
+  var a = document.createElement("a");
+  a.href = doc.dataUrl; a.download = doc.name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ document.body.removeChild(a); }, 200);
+}
+function printHTML(html){
+  var pa = $("printArea");
+  pa.innerHTML = html;
+  window.print();
+  setTimeout(function(){ pa.innerHTML = ""; }, 400);
+}
+function copyText(text, btn){
+  function done(){ if(btn){ var old = btn.textContent; btn.textContent = "Copied ✓"; setTimeout(function(){ btn.textContent = old; }, 1500); } }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, function(){ fallback(); });
+  } else fallback();
+  function fallback(){
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); done(); }catch(e){}
+    document.body.removeChild(ta);
+  }
+}
+
+/* ================= Rental applications & screening ================= */
+var SCREEN_CHECKS = [
+  ["credit", "Credit report"],
+  ["criminal", "Criminal / background"],
+  ["eviction", "Eviction history"]
+];
+var SCREEN_STATUSES = ["Not ordered", "Ordered", "Received — clear", "Received — flagged"];
+function blankScreening(){
+  var o = {};
+  SCREEN_CHECKS.forEach(function(c){ o[c[0]] = { status: "Not ordered", cost: "", note: "" }; });
+  return o;
+}
+function appStatusPill(st, converted){
+  if(converted) return '<span class="pill done">Tenant created</span>';
+  return st === "approved" ? '<span class="pill paid">Approved</span>'
+       : st === "review" ? '<span class="pill prog">Under review</span>'
+       : st === "declined" ? '<span class="pill unpaid">Declined</span>'
+       : '<span class="pill info">New</span>';
+}
+$("appForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var name = $("aName").value.trim(); if(!name) return;
+  DB.applications.push({ id: uid(), date: todayStr(), name: name,
+    email: $("aEmail").value.trim(), phone: $("aPhone").value.trim(),
+    unitId: $("aUnit").value,
+    occupants: $("aOccupants").value, pets: $("aPets").value.trim(),
+    income: Number($("aIncome").value)||0, employer: $("aEmployer").value.trim(),
+    currentAddr: $("aCurrentAddr").value.trim(), currentRent: Number($("aCurrentRent").value)||0,
+    reason: $("aReason").value.trim(), notes: $("aNotes").value,
+    status: "new", screening: blankScreening(), convertedTenantId: "" });
+  ["aName","aEmail","aPhone","aOccupants","aPets","aIncome","aEmployer","aCurrentAddr","aCurrentRent","aReason","aNotes"].forEach(function(id){ $(id).value = ""; });
+  save(); renderApplications(); toast("Application logged");
+});
+function renderApplications(){
+  unitSelectOptions($("aUnit"));
+  var counts = { total: DB.applications.length, open: 0, approved: 0 };
+  DB.applications.forEach(function(a){ if(!a.convertedTenantId && a.status !== "declined") counts.open++; if(a.status === "approved") counts.approved++; });
+  $("appSummary").innerHTML =
+    '<div class="stat"><div class="label">Applications</div><div class="value">' + counts.total + '</div></div>' +
+    '<div class="stat"><div class="label">Open (not declined)</div><div class="value">' + counts.open + '</div></div>' +
+    '<div class="stat"><div class="label">Approved</div><div class="value">' + counts.approved + '</div></div>';
+  var wrap = $("appList");
+  if(!DB.applications.length){
+    wrap.innerHTML = '<div class="empty">No applications yet. When someone applies — on paper, by email, or through a listing site — log them above and track their screening here.</div>';
+    return;
+  }
+  var rows = DB.applications.slice().sort(function(a,b){ return (a.date||"") < (b.date||"") ? 1 : -1; });
+  wrap.innerHTML = rows.map(function(a){
+    var f = a.unitId ? findUnit(a.unitId) : null;
+    var scr = a.screening || blankScreening();
+    var scrCost = SCREEN_CHECKS.reduce(function(s,c){ return s + (Number(scr[c[0]] && scr[c[0]].cost)||0); }, 0);
+    var scrRows = SCREEN_CHECKS.map(function(c){
+      var rec = scr[c[0]] || { status: "Not ordered", cost: "", note: "" };
+      return '<div class="screenrow"><span class="sname">' + c[1] + '</span>' +
+        '<select data-scr-status="' + a.id + '|' + c[0] + '">' +
+          SCREEN_STATUSES.map(function(s){ return '<option value="' + esc(s) + '"' + (rec.status === s ? " selected" : "") + '>' + esc(s) + '</option>'; }).join("") +
+        '</select>' +
+        '<input type="number" min="0" step="0.01" placeholder="Cost $" data-scr-cost="' + a.id + '|' + c[0] + '" value="' + esc(rec.cost) + '">' +
+        '<input class="note" placeholder="Note (provider, reference #, result detail)" data-scr-note="' + a.id + '|' + c[0] + '" value="' + esc(rec.note || "") + '">' +
+      '</div>';
+    }).join("");
+    var facts = [
+      a.income ? "Income " + money(a.income) + "/mo" + (a.employer ? " (" + esc(a.employer) + ")" : "") : "",
+      a.occupants ? esc(a.occupants) + " occupant(s)" : "",
+      a.pets ? "Pets: " + esc(a.pets) : "",
+      a.currentAddr ? "Now: " + esc(a.currentAddr) + (a.currentRent ? " at " + money(a.currentRent) + "/mo" : "") : "",
+      a.reason ? "Leaving: " + esc(a.reason) : ""
+    ].filter(Boolean).join(" · ");
+    return '<div class="appcard"><div class="ahead"><span class="aname">' + esc(a.name) + '</span>' +
+      '<span>' + (f ? esc(f.prop.name) + ' — ' + esc(f.unit.name) : '<span class="pill none">No unit</span>') + '</span>' +
+      appStatusPill(a.status, a.convertedTenantId) +
+      '<span class="nmeta" style="color:var(--muted);font-size:12.5px">Applied ' + fmtDate(a.date) + '</span>' +
+      '<span style="flex:1"></span>' +
+      '<label style="font-size:12px;font-weight:700;color:var(--muted)">STATUS</label>' +
+      '<select data-app-status="' + a.id + '">' +
+        [["new","New"],["review","Under review"],["approved","Approved"],["declined","Declined"]].map(function(o){
+          return '<option value="' + o[0] + '"' + (a.status === o[0] ? " selected" : "") + '>' + o[1] + '</option>';
+        }).join("") + '</select> ' +
+      '<button class="btn danger small" type="button" data-del-app="' + a.id + '">Delete</button></div>' +
+      (facts ? '<div class="sub" style="margin:6px 0 2px">' + facts + '</div>' : '') +
+      '<div class="sub" style="margin:2px 0">' + [esc(a.phone || ""), esc(a.email || "")].filter(Boolean).join(" · ") + '</div>' +
+      (a.notes ? '<div class="nbody" style="white-space:pre-wrap;font-size:14px">' + esc(a.notes) + '</div>' : '') +
+      '<h4 style="margin:12px 0 2px">Screening — record results from your screening provider</h4>' +
+      scrRows +
+      '<div class="sub" style="margin-top:6px">Screening cost recorded: <strong>' + money(scrCost) + '</strong> (typically paid by the applicant).</div>' +
+      (a.convertedTenantId
+        ? '<div class="sub">Converted to a tenant profile — see the Tenants tab.</div>'
+        : '<button class="btn" type="button" data-convert-app="' + a.id + '">Approve &amp; create tenant</button>') +
+    '</div>';
+  }).join("");
+
+  wrap.querySelectorAll("[data-app-status]").forEach(function(sel){
+    sel.addEventListener("change", function(){
+      var a = DB.applications.filter(function(x){ return x.id === sel.getAttribute("data-app-status"); })[0];
+      if(a){ a.status = sel.value; save(); renderApplications(); }
+    });
+  });
+  wrap.querySelectorAll("[data-scr-status],[data-scr-cost],[data-scr-note]").forEach(function(inp){
+    inp.addEventListener("change", function(){
+      var attr = inp.hasAttribute("data-scr-status") ? "data-scr-status" : inp.hasAttribute("data-scr-cost") ? "data-scr-cost" : "data-scr-note";
+      var parts = inp.getAttribute(attr).split("|");
+      var a = DB.applications.filter(function(x){ return x.id === parts[0]; })[0];
+      if(!a) return;
+      if(!a.screening) a.screening = blankScreening();
+      if(!a.screening[parts[1]]) a.screening[parts[1]] = { status: "Not ordered", cost: "", note: "" };
+      if(attr === "data-scr-status") a.screening[parts[1]].status = inp.value;
+      if(attr === "data-scr-cost") a.screening[parts[1]].cost = inp.value;
+      if(attr === "data-scr-note") a.screening[parts[1]].note = inp.value;
+      save(); renderApplications();
+    });
+  });
+  wrap.querySelectorAll("[data-del-app]").forEach(function(b){
+    b.addEventListener("click", function(){
+      if(!confirm("Delete this application and its screening record?")) return;
+      DB.applications = DB.applications.filter(function(x){ return x.id !== b.getAttribute("data-del-app"); });
+      save(); renderApplications(); toast("Application deleted");
+    });
+  });
+  wrap.querySelectorAll("[data-convert-app]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var a = DB.applications.filter(function(x){ return x.id === b.getAttribute("data-convert-app"); })[0];
+      if(!a || a.convertedTenantId) return;
+      var f = a.unitId ? findUnit(a.unitId) : null;
+      if(!f){ alert("This application is not tied to a unit. Edit it after creating the tenant from the Tenants tab instead."); return; }
+      var start = new Date(); var end = new Date(); end.setFullYear(end.getFullYear() + 1);
+      var iso = function(d){ return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate()); };
+      var t = { id: uid(), name: a.name, phone: a.phone || "", email: a.email || "", unitId: f.unit.id,
+                leaseStart: iso(start), leaseEnd: iso(end),
+                deposit: Number(f.unit.deposit)||0, lateFee: 0 };
+      var prev = tenantOfUnit(f.unit.id);
+      if(prev && prev.id !== t.id) prev.unitId = "";
+      DB.tenants.push(t);
+      f.unit.tenantId = t.id; f.unit.tenant = t.name; f.unit.status = "occupied";
+      if(t.deposit) f.unit.deposit = t.deposit;
+      f.unit.leaseEnd = t.leaseEnd;
+      a.status = "approved"; a.convertedTenantId = t.id;
+      save(); renderAll(); toast("Tenant created for " + a.name + " — set their late fee in the Tenants tab if the lease has one");
+    });
+  });
+}
+
+/* ================= Lease builder ================= */
+function fillLeaseForm(){
+  unitSelectOptions($("lUnit"));
+  var st = $("lState");
+  if(!st.options.length) st.innerHTML = stateOptions("PA");
+}
+$("lUnit").addEventListener("change", function(){
+  var f = findUnit($("lUnit").value);
+  if(!f) return;
+  $("lRent").value = Number(f.unit.rent)||"";
+  $("lDeposit").value = Number(f.unit.deposit)||"";
+  var nm = unitTenantName(f.unit);
+  if(nm && !$("lTenantName").value) $("lTenantName").value = nm;
+  var t = (f.unit.tenantId && tenantById(f.unit.tenantId)) || tenantOfUnit(f.unit.id);
+  if(t){
+    if(t.leaseStart) $("lStart").value = t.leaseStart;
+    if(t.leaseEnd) $("lEnd").value = t.leaseEnd;
+    if(t.lateFee) $("lLateFee").value = t.lateFee;
+  }
+});
+function leaseDocHTML(l){
+  var f = l.unitId ? findUnit(l.unitId) : null;
+  var propName = f ? f.prop.name : "";
+  var unitName = f ? f.unit.name : "";
+  var address = f ? (f.prop.address || "") : "";
+  var dueDay = f ? (f.unit.dueDay || 1) : 1;
+  var petsClause = l.pets === "yes"
+    ? "Pets are permitted as follows: " + esc(l.petDetails || "as agreed in writing with the Landlord") + "."
+    : "No pets of any kind may be kept on the premises without the Landlord's prior written consent.";
+  var smokingClause = l.smoking === "yes" ? "Smoking is permitted on the premises."
+    : l.smoking === "outside" ? "Smoking is permitted outside the unit only; no smoking inside the premises."
+    : "Smoking is not permitted anywhere on the premises.";
+  var rules = (l.rules || "").split("\n").map(function(r){ return r.trim(); }).filter(Boolean);
+  return '<h1>Residential Lease Agreement</h1>' +
+    '<p>State template pack: <strong>' + esc(l.state) + '</strong> · Generated ' + fmtDate(l.created) + ' with LandlordDesk. This is a template document — have it reviewed by a local attorney before signing.</p>' +
+    '<h2>Parties and premises</h2>' +
+    '<p><strong>Landlord:</strong> ______________________________<br>' +
+    '<strong>Tenant(s):</strong> ' + esc(l.tenantName) + '<br>' +
+    '<strong>Premises:</strong> ' + esc(propName) + (unitName ? ' — ' + esc(unitName) : '') + (address ? ', ' + esc(address) : '') + '</p>' +
+    '<h2>Term and rent</h2>' +
+    '<p>This lease begins on <strong>' + fmtDate(l.start) + '</strong> and ends on <strong>' + fmtDate(l.end) + '</strong>. Rent is <strong>' + money(l.rent) + ' per month</strong>, due on day <strong>' + dueDay + '</strong> of each month.</p>' +
+    '<p><strong>Security deposit:</strong> ' + money(l.deposit) + ', held by the Landlord subject to the laws of ' + esc(l.state) + '.</p>' +
+    '<p><strong>Late fee:</strong> If rent is not received within <strong>' + esc(l.grace) + ' day(s)</strong> after the due date, a late fee of <strong>' + money(l.lateFee) + '</strong> applies.</p>' +
+    '<h2>Utilities</h2>' +
+    '<p><strong>Landlord provides:</strong> ' + esc(l.utilLandlord || "—") + '<br><strong>Tenant provides:</strong> ' + esc(l.utilTenant || "—") + '</p>' +
+    '<h2>Rules</h2>' +
+    '<p>' + petsClause + '</p><p>' + smokingClause + '</p>' +
+    (rules.length ? '<ul>' + rules.map(function(r){ return '<li>' + esc(r) + '</li>'; }).join("") + '</ul>' : '') +
+    '<p>Tenant agrees to keep the premises clean and in good condition, to allow the Landlord reasonable access on notice as required by ' + esc(l.state) + ' law, and to surrender the premises at the end of the term in the condition received, ordinary wear excepted.</p>' +
+    '<div class="sigrow">' +
+      '<div class="sigbox"><div class="sigline"></div>Landlord signature &amp; date</div>' +
+      '<div class="sigbox"><div class="sigline"></div>Tenant signature &amp; date — ' + esc(l.tenantName) + '</div>' +
+    '</div>';
+}
+$("leaseForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var tenantName = $("lTenantName").value.trim(); if(!tenantName) return;
+  var l = { id: uid(), created: todayStr(), unitId: $("lUnit").value, tenantName: tenantName,
+    state: $("lState").value, start: $("lStart").value, end: $("lEnd").value,
+    rent: Number($("lRent").value)||0, deposit: Number($("lDeposit").value)||0,
+    lateFee: Number($("lLateFee").value)||0, grace: Number($("lGrace").value)||0,
+    pets: $("lPets").value, petDetails: $("lPetDetails").value.trim(),
+    smoking: $("lSmoking").value,
+    utilLandlord: $("lUtilLandlord").value.trim(), utilTenant: $("lUtilTenant").value.trim(),
+    rules: $("lRules").value };
+  DB.leases.push(l);
+  save(); renderLeases(); toast("Lease generated — print it or save it from Saved leases");
+  var wrap = $("leaseDocWrap");
+  wrap.innerHTML = '<div class="leasecard"><div class="ahead"><span class="aname">Lease — ' + esc(l.tenantName) + '</span><span style="flex:1"></span>' +
+    '<button class="btn secondary small" type="button" id="leasePrintNow">Print this lease</button></div>' +
+    '<div class="sub">Preview below is the document text. Use Print for the clean signature copy.</div></div>';
+  $("leasePrintNow").addEventListener("click", function(){ printHTML(leaseDocHTML(l)); });
+});
+function renderLeases(){
+  fillLeaseForm();
+  var wrap = $("leaseList");
+  if(!DB.leases.length){
+    wrap.innerHTML = '<div class="empty">No leases generated yet. Fill in the builder above to create the first one.</div>';
+    return;
+  }
+  var rows = DB.leases.slice().sort(function(a,b){ return (a.created||"") < (b.created||"") ? 1 : -1; });
+  wrap.innerHTML = '<table><thead><tr><th>Created</th><th>Tenant</th><th>Unit</th><th>State</th><th>Term</th><th>Rent</th><th></th></tr></thead><tbody>' +
+    rows.map(function(l){
+      var f = l.unitId ? findUnit(l.unitId) : null;
+      return '<tr><td>' + fmtDate(l.created) + '</td><td><strong>' + esc(l.tenantName) + '</strong></td>' +
+        '<td>' + (f ? esc(f.prop.name) + ' — ' + esc(f.unit.name) : "—") + '</td><td>' + esc(l.state) + '</td>' +
+        '<td>' + fmtDate(l.start) + ' → ' + fmtDate(l.end) + '</td><td>' + money(l.rent) + '</td>' +
+        '<td><button class="btn secondary small" type="button" data-lease-print="' + l.id + '">Print</button> ' +
+        '<button class="btn danger small" type="button" data-del-lease="' + l.id + '">Delete</button></td></tr>';
+    }).join("") + '</tbody></table>';
+  wrap.querySelectorAll("[data-lease-print]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var l = DB.leases.filter(function(x){ return x.id === b.getAttribute("data-lease-print"); })[0];
+      if(l) printHTML(leaseDocHTML(l));
+    });
+  });
+  wrap.querySelectorAll("[data-del-lease]").forEach(function(b){
+    b.addEventListener("click", function(){
+      DB.leases = DB.leases.filter(function(x){ return x.id !== b.getAttribute("data-del-lease"); });
+      save(); renderLeases(); toast("Lease deleted");
+    });
+  });
+}
+
+/* ================= Tenant View (portal preview) ================= */
+function portalPay(unitId, amount){
+  var f = findUnit(unitId); if(!f) return 0;
+  var rent = Number(f.unit.rent)||0;
+  var remaining = amount, applied = 0;
+  var owed = arrearsList().filter(function(a){ return a.unit.id === unitId; })
+    .sort(function(a,b){ return a.month < b.month ? -1 : 1; });
+  owed.forEach(function(a){
+    if(remaining <= 0) return;
+    var rec = ensurePay(unitId, a.month);
+    var already = Number(rec.amount)||0;
+    var pay = Math.min(rent - already, remaining);
+    if(pay <= 0) return;
+    rec.amount = already + pay; rec.date = todayStr(); rec.method = "Online (tenant portal)";
+    rec.status = rec.amount >= rent ? "paid" : "partial";
+    remaining -= pay; applied += pay;
+  });
+  if(remaining > 0){
+    var cur = ensurePay(unitId, monthNow());
+    cur.amount = (Number(cur.amount)||0) + remaining;
+    cur.date = todayStr(); cur.method = "Online (tenant portal)";
+    cur.status = rent > 0 && cur.amount >= rent ? "paid" : "partial";
+    applied += remaining; remaining = 0;
+  }
+  return applied;
+}
+function renderTenantView(){
+  var sel = $("tvUnit");
+  var cur = sel.value;
+  var occ = allUnits().filter(function(x){ return unitStatus(x.unit) === "occupied" && unitTenantName(x.unit); });
+  sel.innerHTML = occ.length
+    ? occ.map(function(x){ return '<option value="' + x.unit.id + '">' + esc(unitTenantName(x.unit)) + ' — ' + esc(x.prop.name) + ' / ' + esc(x.unit.name) + '</option>'; }).join("")
+    : '<option value="">No occupied units with a tenant yet</option>';
+  if(cur && sel.querySelector('option[value="' + cur + '"]')) sel.value = cur;
+  var wrap = $("tvWrap");
+  var f = sel.value ? findUnit(sel.value) : null;
+  if(!f){
+    wrap.innerHTML = '<div class="empty">Once a unit has a tenant, their portal preview appears here.</div>';
+    return;
+  }
+  var u = f.unit;
+  var t = (u.tenantId && tenantById(u.tenantId)) || tenantOfUnit(u.id);
+  var myArrears = arrearsList().filter(function(a){ return a.unit.id === u.id; });
+  var balance = myArrears.reduce(function(s,a){ return s + a.owed; }, 0);
+  var curPay = getPay(u.id, monthNow());
+  var sharedDocs = DB.documents.filter(function(d){
+    return d.shared && (d.scope === "unit:" + u.id || d.scope === "prop:" + f.prop.id || (t && d.scope === "tenant:" + t.id));
+  });
+  var myLease = DB.leases.filter(function(l){ return l.unitId === u.id; }).slice(-1)[0] || null;
+  wrap.innerHTML =
+    '<div class="prop"><div class="prop-head"><span class="name">Welcome, ' + esc(unitTenantName(u)) + '</span><span class="addr">' + esc(f.prop.name) + ' — ' + esc(u.name) + (f.prop.address ? ' · ' + esc(f.prop.address) : '') + '</span></div>' +
+    '<div class="summary">' +
+      '<div class="stat"><div class="label">Monthly rent</div><div class="value">' + money(u.rent) + '</div><div class="note">Due on day ' + esc(u.dueDay || 1) + ' of each month</div></div>' +
+      '<div class="stat"><div class="label">Balance due</div><div class="value" style="color:' + (balance > 0 ? "var(--bad)" : "var(--brand)") + '">' + money(balance) + '</div><div class="note">' + (myArrears.length ? myArrears.map(function(a){ return a.month + ": " + money(a.owed); }).join(" · ") : "You are all paid up.") + '</div></div>' +
+      '<div class="stat"><div class="label">This month</div><div class="value">' + (curPay && curPay.status === "paid" ? "Paid ✓" : curPay && curPay.status === "partial" ? "Partial" : "Not paid yet") + '</div><div class="note">' + (curPay && curPay.amount ? money(curPay.amount) + " received" + (curPay.date ? " on " + fmtDate(curPay.date) : "") : "No payment recorded this month") + '</div></div>' +
+      '<div class="stat"><div class="label">Security deposit held</div><div class="value">' + money(t ? t.deposit : u.deposit) + '</div></div>' +
+    '</div>' +
+    '<form class="inline" id="tvPayForm">' +
+      '<div class="field"><label for="tvPayAmt">Pay now ($)</label><input type="number" id="tvPayAmt" min="0" step="0.01" value="' + (balance > 0 ? balance.toFixed(2) : (Number(u.rent)||0)) + '"></div>' +
+      '<button class="btn" type="submit">Pay rent</button>' +
+      '<span class="sub" style="margin:0">In this preview, paying records the payment in the landlord\'s rent tracker instantly.</span>' +
+    '</form></div>' +
+    '<div class="cols">' +
+      '<div class="mini"><h3>Request maintenance</h3>' +
+        '<form id="tvMtForm">' +
+          '<div class="field" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px"><label style="font-size:12px;font-weight:700;color:var(--muted)">WHAT NEEDS FIXING?</label><input id="tvMtIssue" required placeholder="e.g. Bathroom faucet dripping"></div>' +
+          '<div class="field" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px"><label style="font-size:12px;font-weight:700;color:var(--muted)">PRIORITY</label><select id="tvMtPriority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="emergency">Emergency</option></select></div>' +
+          '<button class="btn secondary" type="submit">Send request to landlord</button>' +
+        '</form></div>' +
+      '<div class="mini"><h3>Your lease</h3>' +
+        (t ? '<ul><li><strong>Lease:</strong> ' + (t.leaseStart ? fmtDate(t.leaseStart) : "—") + ' → ' + (t.leaseEnd ? fmtDate(t.leaseEnd) : "—") + '</li>' +
+             '<li><strong>Rent:</strong> ' + money(u.rent) + '/month, due day ' + esc(u.dueDay || 1) + '</li>' +
+             '<li><strong>Late fee:</strong> ' + (t.lateFee > 0 ? money(t.lateFee) : "—") + '</li>' +
+             (myLease ? '<li><strong>State template on file:</strong> ' + esc(myLease.state) + '</li>' : '') + '</ul>' +
+             (myLease ? '<button class="btn secondary small" type="button" id="tvLeasePrint">View / print my lease</button>' : '')
+           : '<div class="sub">Lease details appear here once your landlord adds your lease profile.</div>') +
+      '</div>' +
+      '<div class="mini"><h3>Documents shared with you</h3>' +
+        (sharedDocs.length
+          ? '<ul>' + sharedDocs.map(function(d){ return '<li>' + esc(d.name) + ' <button class="btn ghost small" type="button" data-doc-dl="' + d.id + '">Download</button></li>'; }).join("") + '</ul>'
+          : '<div class="sub">No documents shared yet. Your landlord can share leases, letters, and notices from the Documents tab.</div>') +
+      '</div>' +
+    '</div>';
+  $("tvPayForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var amt = Number($("tvPayAmt").value)||0;
+    if(amt <= 0){ alert("Enter an amount to pay."); return; }
+    var applied = portalPay(u.id, amt);
+    save(); renderAll(); toast("Payment of " + money(applied) + " recorded — thank you!");
+  });
+  $("tvMtForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var issue = $("tvMtIssue").value.trim(); if(!issue) return;
+    DB.maintenance.push({ id: uid(), date: todayStr(), scope: u.id, issue: issue,
+      priority: $("tvMtPriority").value, vendorId: "", status: "open", cost: 0, source: "tenant" });
+    save(); renderAll(); toast("Request sent — it is now in the landlord's Maintenance tab");
+  });
+  var lp = $("tvLeasePrint");
+  if(lp && myLease) lp.addEventListener("click", function(){ printHTML(leaseDocHTML(myLease)); });
+  wrap.querySelectorAll("[data-doc-dl]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var d = DB.documents.filter(function(x){ return x.id === b.getAttribute("data-doc-dl"); })[0];
+      if(d) downloadDoc(d);
+    });
+  });
+}
+$("tvUnit").addEventListener("change", renderTenantView);
+
+/* ================= Documents ================= */
+function docScopeOptions(sel){
+  var cur = sel.value;
+  var html = "";
+  DB.properties.forEach(function(p){
+    html += '<option value="prop:' + p.id + '">Property — ' + esc(p.name) + '</option>';
+    p.units.forEach(function(u){ html += '<option value="unit:' + u.id + '">&nbsp;&nbsp;' + esc(p.name) + ' — ' + esc(u.name) + '</option>'; });
+  });
+  DB.tenants.forEach(function(t){ html += '<option value="tenant:' + t.id + '">Tenant — ' + esc(t.name) + '</option>'; });
+  sel.innerHTML = html || '<option value="">Add a property or tenant first</option>';
+  if(cur && sel.querySelector('option[value="' + cur + '"]')) sel.value = cur;
+}
+function docScopeLabel(scope){
+  if(!scope) return "—";
+  var kind = scope.split(":")[0], id = scope.slice(scope.indexOf(":") + 1);
+  if(kind === "prop"){ var p = findProp(id); return p ? p.name + " (property)" : "(deleted property)"; }
+  if(kind === "unit"){ var f = findUnit(id); return f ? f.prop.name + " — " + f.unit.name : "(deleted unit)"; }
+  if(kind === "tenant"){ var t = tenantById(id); return t ? "Tenant — " + t.name : "(deleted tenant)"; }
+  return scope;
+}
+$("docForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var files = $("docFile").files;
+  var scope = $("docScope").value;
+  if(!scope){ alert("Add a property or tenant first, then attach documents."); return; }
+  if(!files || !files.length){ alert("Choose at least one file to attach."); return; }
+  var shared = $("docShare").value === "1";
+  var list = Array.prototype.slice.call(files);
+  var added = [];
+  var pending = list.length;
+  list.forEach(function(file){
+    if(file.size > 2 * 1024 * 1024){
+      pending--;
+      alert('"' + file.name + '" is larger than 2 MB and was skipped — files stored in this browser prototype need to stay modest in size.');
+      if(pending === 0) finishDocAdd(added);
+      return;
+    }
+    readFileAsDataURL(file).then(function(url){
+      added.push({ id: uid(), scope: scope, name: file.name, size: file.size,
+                   type: file.type || "", dataUrl: url, date: todayStr(), shared: shared });
+      pending--;
+      if(pending === 0) finishDocAdd(added);
+    }, function(){
+      pending--;
+      if(pending === 0) finishDocAdd(added);
+    });
+  });
+  function finishDocAdd(newDocs){
+    if(!newDocs.length) return;
+    var before = DB.documents.length;
+    DB.documents = DB.documents.concat(newDocs);
+    if(!trySaveDB()){
+      DB.documents = DB.documents.slice(0, before);
+      save();
+      alert("Those files would not fit in this browser's local storage. Remove some documents or use smaller files — in the hosted version, documents live in cloud storage instead.");
+      renderDocuments(); return;
+    }
+    $("docFile").value = "";
+    renderDocuments(); renderTenantView(); toast(newDocs.length + " document(s) attached");
+  }
+});
+function renderDocuments(){
+  docScopeOptions($("docScope"));
+  var totalBytes = DB.documents.reduce(function(s,d){ return s + (d.dataUrl ? d.dataUrl.length : 0); }, 0);
+  $("docMeta").textContent = DB.documents.length
+    ? DB.documents.length + " document(s) stored, using roughly " + Math.max(1, Math.round(totalBytes * 0.75 / 1024)) + " KB of this browser's storage."
+    : "No documents stored yet.";
+  var wrap = $("docList");
+  if(!DB.documents.length){
+    wrap.innerHTML = '<div class="empty">No documents yet. Attach a lease, inspection letter, or receipt above.</div>';
+    return;
+  }
+  var rows = DB.documents.slice().sort(function(a,b){ return (a.date||"") < (b.date||"") ? 1 : -1; });
+  wrap.innerHTML = '<table><thead><tr><th>File</th><th>Attached to</th><th>Size</th><th>Date</th><th>Shared with tenant</th><th></th></tr></thead><tbody>' +
+    rows.map(function(d){
+      return '<tr><td><strong>' + esc(d.name) + '</strong></td><td>' + esc(docScopeLabel(d.scope)) + '</td>' +
+        '<td>' + (d.size ? Math.max(1, Math.round(d.size / 1024)) + " KB" : "—") + '</td><td>' + fmtDate(d.date) + '</td>' +
+        '<td>' + (d.shared ? '<span class="pill info">Shared</span>' : '<span class="pill none">Private</span>') + '</td>' +
+        '<td><button class="btn secondary small" type="button" data-doc-dl="' + d.id + '">Download</button> ' +
+        '<button class="btn ghost small" type="button" data-doc-share="' + d.id + '">' + (d.shared ? "Unshare" : "Share") + '</button> ' +
+        '<button class="btn danger small" type="button" data-doc-del="' + d.id + '">Remove</button></td></tr>';
+    }).join("") + '</tbody></table>';
+  wrap.querySelectorAll("[data-doc-dl]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var d = DB.documents.filter(function(x){ return x.id === b.getAttribute("data-doc-dl"); })[0];
+      if(d) downloadDoc(d);
+    });
+  });
+  wrap.querySelectorAll("[data-doc-share]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var d = DB.documents.filter(function(x){ return x.id === b.getAttribute("data-doc-share"); })[0];
+      if(d){ d.shared = !d.shared; save(); renderDocuments(); renderTenantView(); }
+    });
+  });
+  wrap.querySelectorAll("[data-doc-del]").forEach(function(b){
+    b.addEventListener("click", function(){
+      if(!confirm("Remove this document from LandlordDesk? The stored copy here will be deleted.")) return;
+      DB.documents = DB.documents.filter(function(x){ return x.id !== b.getAttribute("data-doc-del"); });
+      save(); renderDocuments(); renderTenantView(); toast("Document removed");
+    });
+  });
+}
+
+/* ================= Receipt attach (Money tab, wraps renderMoney) ================= */
+function attachReceiptControls(){
+  var wrap = $("expTableWrap");
+  if(!wrap) return;
+  if(!hasFeature("receipts")){
+    if(wrap.querySelector("table")){
+      var note = document.createElement("div");
+      note.className = "gate-note";
+      note.innerHTML = "🔒 <strong>Receipt attach</strong> is part of the <strong>" + esc(PLANS[FEATURE_INFO.receipts.min].name) + "</strong> plan (" + esc(PLANS[FEATURE_INFO.receipts.min].price) + ") — your current plan is " + esc(PLANS[curPlan()].name) + ". Any receipts already stored stay saved with their expenses.";
+      wrap.appendChild(note);
+    }
+    return;
+  }
+  wrap.querySelectorAll("[data-del-exp]").forEach(function(btn){
+    var expId = btn.getAttribute("data-del-exp");
+    var exp = DB.expenses.filter(function(x){ return x.id === expId; })[0];
+    if(!exp) return;
+    var td = btn.parentNode;
+    td.appendChild(document.createTextNode(" "));
+    if(exp.receipt){
+      var view = document.createElement("button");
+      view.className = "btn ghost small"; view.type = "button"; view.textContent = "Receipt";
+      view.addEventListener("click", function(){ downloadDoc({ name: exp.receipt.name, dataUrl: exp.receipt.dataUrl }); });
+      td.appendChild(view);
+      td.appendChild(document.createTextNode(" "));
+      var rm = document.createElement("button");
+      rm.className = "btn ghost small"; rm.type = "button"; rm.textContent = "Remove receipt";
+      rm.addEventListener("click", function(){
+        if(!confirm("Remove the receipt attached to this expense?")) return;
+        delete exp.receipt; save(); renderMoney(); toast("Receipt removed");
+      });
+      td.appendChild(rm);
+    } else {
+      var label = document.createElement("label");
+      label.className = "btn ghost small"; label.style.cursor = "pointer"; label.textContent = "Attach receipt";
+      var input = document.createElement("input");
+      input.type = "file"; input.accept = "image/*,.pdf"; input.hidden = true;
+      input.addEventListener("change", function(){
+        var file = input.files && input.files[0];
+        if(!file) return;
+        if(file.size > 2 * 1024 * 1024){ alert("That file is over 2 MB — receipts stored in this browser prototype need to stay modest in size."); return; }
+        readFileAsDataURL(file).then(function(url){
+          exp.receipt = { name: file.name, size: file.size, dataUrl: url };
+          if(!trySaveDB()){ delete exp.receipt; save(); alert("That receipt would not fit in this browser's local storage."); renderMoney(); return; }
+          renderMoney(); toast("Receipt attached");
+        });
+      });
+      label.appendChild(input);
+      td.appendChild(label);
+    }
+  });
+}
+
+/* ================= Bank CSV import ================= */
+var EXP_CATS = ["Repairs","Maintenance","Utilities","Property tax","Insurance","Water / sewer","Trash","Lawn / snow","Supplies","Legal / fees","Management","Mortgage interest","Other"];
+var INC_CATS = ["Late fees","Laundry","Parking","Application fees","Pet fees","Utility reimbursement","Other income"];
+function parseCSV(text){
+  var rows = [], row = [], cur = "", inQ = false;
+  text = String(text || "").replace(/^\uFEFF/, "");
+  for(var i = 0; i < text.length; i++){
+    var ch = text[i];
+    if(inQ){
+      if(ch === '"'){ if(text[i+1] === '"'){ cur += '"'; i++; } else inQ = false; }
+      else cur += ch;
+    } else if(ch === '"'){ inQ = true; }
+    else if(ch === ","){ row.push(cur); cur = ""; }
+    else if(ch === "\n" || ch === "\r"){
+      if(ch === "\r" && text[i+1] === "\n") i++;
+      row.push(cur); cur = "";
+      if(row.length > 1 || row[0] !== "") rows.push(row);
+      row = [];
+    } else cur += ch;
+  }
+  row.push(cur);
+  if(row.length > 1 || row[0] !== "") rows.push(row);
+  return rows;
+}
+function csvAmount(s){
+  s = String(s == null ? "" : s).trim().replace(/\$/g, "").replace(/,/g, "");
+  if(!s) return NaN;
+  var neg = false;
+  if(/^\(.*\)$/.test(s)){ neg = true; s = s.slice(1, -1); }
+  var n = parseFloat(s);
+  if(isNaN(n)) return NaN;
+  return neg ? -n : n;
+}
+function csvDate(s){
+  s = String(s == null ? "" : s).trim();
+  var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return m[1] + "-" + pad2(+m[2]) + "-" + pad2(+m[3]);
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if(m){ var y = +m[3]; if(y < 100) y += 2000; return y + "-" + pad2(+m[1]) + "-" + pad2(+m[2]); }
+  return s.slice(0, 10);
+}
+$("biFile").addEventListener("change", function(e){
+  var file = e.target.files && e.target.files[0];
+  if(!file) return;
+  if(!hasFeature("bankimport")){
+    alert(FEATURE_INFO.bankimport.label + " is part of the " + PLANS[FEATURE_INFO.bankimport.min].name + " plan — your current plan is " + PLANS[curPlan()].name + ". Switch plans with the Plan (trial control) in the header to preview it.");
+    e.target.value = "";
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(){
+    var rows = parseCSV(String(reader.result || ""));
+    if(!rows.length){ alert("No rows could be read from that file."); e.target.value = ""; return; }
+    var header = rows[0].map(function(h){ return String(h).toLowerCase(); });
+    var di = -1, dsi = -1, ai = -1, dbi = -1, cri = -1;
+    header.forEach(function(h, i){
+      if(di < 0 && h.indexOf("date") >= 0) di = i;
+      if(dsi < 0 && (h.indexOf("desc") >= 0 || h.indexOf("name") >= 0 || h.indexOf("memo") >= 0 || h.indexOf("payee") >= 0)) dsi = i;
+      if(ai < 0 && h.indexOf("amount") >= 0) ai = i;
+      if(dbi < 0 && (h.indexOf("debit") >= 0 || h.indexOf("withdrawal") >= 0)) dbi = i;
+      if(cri < 0 && (h.indexOf("credit") >= 0 || h.indexOf("deposit") >= 0)) cri = i;
+    });
+    var hasHeader = di >= 0 || dsi >= 0 || ai >= 0 || dbi >= 0 || cri >= 0;
+    if(!hasHeader){ di = 0; dsi = 1; ai = 2; }
+    var added = 0;
+    for(var r = hasHeader ? 1 : 0; r < rows.length; r++){
+      var row = rows[r];
+      var amt;
+      if(ai >= 0) amt = csvAmount(row[ai]);
+      else {
+        var dAmt = dbi >= 0 ? csvAmount(row[dbi]) : NaN;
+        var cAmt = cri >= 0 ? csvAmount(row[cri]) : NaN;
+        amt = !isNaN(cAmt) && cAmt !== 0 ? Math.abs(cAmt) : (!isNaN(dAmt) ? -Math.abs(dAmt) : NaN);
+      }
+      if(isNaN(amt)) continue;
+      DB.bankTxns.push({ id: uid(), date: csvDate(row[di] || ""), desc: String(row[dsi] || "").trim() || "(no description)",
+                         amount: amt, status: "unmatched", category: "", linkedId: "" });
+      added++;
+    }
+    save(); renderBankImport();
+    toast(added ? added + " bank transaction(s) imported — categorize them below" : "No usable rows found in that CSV (a date, description, and amount column are needed)");
+    e.target.value = "";
+  };
+  reader.readAsText(file);
+});
+function biCatOptions(){
+  var html = '<option value="">— choose category —</option><optgroup label="Expenses">';
+  html += EXP_CATS.map(function(c){ return '<option value="exp:' + esc(c) + '">' + esc(c) + '</option>'; }).join("");
+  html += '</optgroup><optgroup label="Income">';
+  html += INC_CATS.map(function(c){ return '<option value="inc:' + esc(c) + '">' + esc(c) + '</option>'; }).join("");
+  return html + '</optgroup>';
+}
+function renderBankImport(){
+  if(!hasFeature("bankimport")){
+    $("biSummary").innerHTML = "";
+    $("biWrap").innerHTML = planLockHTML("bankimport");
+    return;
+  }
+  scopeOptions($("biScope"));
+  var un = DB.bankTxns.filter(function(x){ return x.status === "unmatched"; }).length;
+  var done = DB.bankTxns.filter(function(x){ return x.status === "categorized"; }).length;
+  $("biSummary").innerHTML = DB.bankTxns.length
+    ? '<strong>' + un + '</strong> unmatched · <strong>' + done + '</strong> categorized · ' + DB.bankTxns.length + ' imported total'
+    : "Nothing imported yet.";
+  var wrap = $("biWrap");
+  if(!DB.bankTxns.length){
+    wrap.innerHTML = '<div class="empty">Import a bank or QuickBooks CSV above and its transactions will appear here for one-click categorizing.</div>';
+    return;
+  }
+  var rows = DB.bankTxns.slice().sort(function(a,b){ return (a.date||"") < (b.date||"") ? 1 : -1; });
+  wrap.innerHTML = '<table><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Category</th><th>Status</th><th></th></tr></thead><tbody>' +
+    rows.map(function(x){
+      var status = x.status === "categorized" ? '<span class="pill done">Categorized</span>'
+                 : x.status === "ignored" ? '<span class="pill none">Ignored</span>'
+                 : '<span class="pill soon">Unmatched</span>';
+      var action = "";
+      if(x.status === "unmatched"){
+        action = '<button class="btn small" type="button" data-bi-cat="' + x.id + '">Categorize</button> ' +
+                 '<button class="btn ghost small" type="button" data-bi-ignore="' + x.id + '">Ignore</button> ' +
+                 '<button class="btn danger small" type="button" data-bi-del="' + x.id + '">Delete</button>';
+      } else if(x.status === "categorized"){
+        action = '<span class="sub">Filed as ' + esc(x.category) + '</span> <button class="btn ghost small" type="button" data-bi-undo="' + x.id + '">Undo</button>';
+      } else {
+        action = '<button class="btn ghost small" type="button" data-bi-undo="' + x.id + '">Un-ignore</button> ' +
+                 '<button class="btn danger small" type="button" data-bi-del="' + x.id + '">Delete</button>';
+      }
+      var catCell = x.status === "unmatched"
+        ? '<select data-bi-catsel="' + x.id + '">' + biCatOptions() + '</select>'
+        : esc(x.category || "—");
+      return '<tr><td>' + (x.date ? fmtDate(x.date) : "—") + '</td><td>' + esc(x.desc) + '</td>' +
+        '<td style="color:' + (x.amount < 0 ? "var(--bad)" : "var(--brand)") + '">' + money(x.amount) + '</td>' +
+        '<td>' + catCell + '</td><td>' + status + '</td><td>' + action + '</td></tr>';
+    }).join("") + '</tbody></table>';
+  wrap.querySelectorAll("[data-bi-cat]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var id = b.getAttribute("data-bi-cat");
+      var x = DB.bankTxns.filter(function(t){ return t.id === id; })[0];
+      var sel = wrap.querySelector('[data-bi-catsel="' + id + '"]');
+      if(!x || !sel || !sel.value){ alert("Choose a category for this transaction first."); return; }
+      var scope = $("biScope").value;
+      if(!scope){ alert("Choose which property or unit to file it under (the dropdown above the import list)."); return; }
+      var kind = sel.value.slice(0, 3), cat = sel.value.slice(4);
+      var rec;
+      if(kind === "exp"){
+        rec = { id: uid(), date: x.date || todayStr(), scope: scope, category: cat, amount: Math.abs(x.amount), note: "Bank import — " + x.desc };
+        DB.expenses.push(rec);
+      } else {
+        rec = { id: uid(), date: x.date || todayStr(), scope: scope, category: cat, amount: Math.abs(x.amount), note: "Bank import — " + x.desc };
+        DB.income.push(rec);
+      }
+      x.status = "categorized"; x.category = (kind === "exp" ? "Expense · " : "Income · ") + cat; x.linkedId = rec.id;
+      save(); renderBankImport(); renderMoney(); renderDashboard(); toast("Transaction categorized");
+    });
+  });
+  wrap.querySelectorAll("[data-bi-ignore]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var x = DB.bankTxns.filter(function(t){ return t.id === b.getAttribute("data-bi-ignore"); })[0];
+      if(x){ x.status = "ignored"; save(); renderBankImport(); }
+    });
+  });
+  wrap.querySelectorAll("[data-bi-undo]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var x = DB.bankTxns.filter(function(t){ return t.id === b.getAttribute("data-bi-undo"); })[0];
+      if(!x) return;
+      if(x.linkedId){
+        DB.expenses = DB.expenses.filter(function(r){ return r.id !== x.linkedId; });
+        DB.income = DB.income.filter(function(r){ return r.id !== x.linkedId; });
+        x.linkedId = "";
+      }
+      x.status = "unmatched"; x.category = "";
+      save(); renderBankImport(); renderMoney(); renderDashboard(); toast("Put back to unmatched");
+    });
+  });
+  wrap.querySelectorAll("[data-bi-del]").forEach(function(b){
+    b.addEventListener("click", function(){
+      DB.bankTxns = DB.bankTxns.filter(function(t){ return t.id !== b.getAttribute("data-bi-del"); });
+      save(); renderBankImport(); toast("Import row deleted");
+    });
+  });
+}
+
+/* ================= Schedule E export ================= */
+var SE_LINE_NAMES = { 3: "Rents received", 5: "Advertising", 6: "Auto and travel", 7: "Cleaning and maintenance", 8: "Commissions", 9: "Insurance", 10: "Legal and other professional fees", 11: "Management fees", 12: "Mortgage interest paid to banks, etc.", 14: "Other interest", 15: "Repairs", 16: "Supplies", 17: "Taxes", 18: "Utilities", 19: "Depreciation expense", 20: "Other" };
+var SE_ORDER = [3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20];
+var SE_MAP = { "Repairs": 15, "Maintenance": 7, "Utilities": 18, "Property tax": 17, "Insurance": 9, "Water / sewer": 18, "Trash": 20, "Lawn / snow": 7, "Supplies": 16, "Legal / fees": 10, "Management": 11, "Mortgage interest": 12, "Other": 20 };
+function computeScheduleE(year){
+  return DB.properties.map(function(p){
+    var unitIds = {};
+    p.units.forEach(function(u){ unitIds[u.id] = 1; });
+    var rents = 0;
+    Object.keys(DB.payments).forEach(function(k){
+      var parts = k.split("|");
+      if(unitIds[parts[0]] && parts[1] && parts[1].slice(0, 4) === year) rents += Number(DB.payments[k].amount)||0;
+    });
+    var lines = {}; lines[3] = rents;
+    var otherIncome = 0;
+    DB.income.forEach(function(x){
+      if((x.date || "").slice(0, 4) === year && propIdOfScope(x.scope) === p.id) otherIncome += Number(x.amount)||0;
+    });
+    DB.expenses.forEach(function(x){
+      if((x.date || "").slice(0, 4) !== year) return;
+      if(propIdOfScope(x.scope) !== p.id) return;
+      var line = SE_MAP[x.category] || 20;
+      lines[line] = (lines[line] || 0) + (Number(x.amount)||0);
+    });
+    var totalExp = 0;
+    SE_ORDER.forEach(function(ln){ if(ln !== 3) totalExp += lines[ln] || 0; });
+    return { prop: p, lines: lines, otherIncome: otherIncome, totalExp: totalExp, net: rents - totalExp };
+  });
+}
+function scheduleETables(year){
+  var blocks = computeScheduleE(year);
+  if(!blocks.length) return { html: '<div class="empty">Add a property to see its Schedule E summary here.</div>', blocks: blocks };
+  var html = blocks.map(function(b){
+    var rows = SE_ORDER.map(function(ln){
+      var v = b.lines[ln] || 0;
+      if(ln !== 3 && v === 0) return "";
+      return '<tr><td>Line ' + ln + ' — ' + esc(SE_LINE_NAMES[ln]) + '</td><td>' + money(v) + '</td></tr>';
+    }).join("");
+    return '<h4 style="margin:14px 0 4px">' + esc(b.prop.name) + (b.prop.address ? ' <span style="color:var(--muted);font-weight:400">· ' + esc(b.prop.address) + '</span>' : '') + '</h4>' +
+      '<table><tbody>' + rows +
+      '<tr><td><strong>Total expenses</strong></td><td><strong>' + money(b.totalExp) + '</strong></td></tr>' +
+      '<tr><td><strong>Net (rents − expenses)</strong></td><td><strong style="color:' + (b.net < 0 ? "var(--bad)" : "var(--brand)") + '">' + money(b.net) + '</strong></td></tr></tbody></table>' +
+      (b.otherIncome > 0 ? '<p class="sub" style="margin-top:4px">Other income recorded for this property in ' + esc(year) + ': <strong>' + money(b.otherIncome) + '</strong> (late fees, laundry, etc.) — ask your tax preparer where to report it; it is not included in the lines above.</p>' : '');
+  }).join("");
+  return { html: html, blocks: blocks };
+}
+function fillSeYear(){
+  var sel = $("seYear");
+  var years = {};
+  years[String(new Date().getFullYear())] = 1;
+  DB.expenses.forEach(function(x){ if(x.date) years[x.date.slice(0, 4)] = 1; });
+  DB.income.forEach(function(x){ if(x.date) years[x.date.slice(0, 4)] = 1; });
+  Object.keys(DB.payments).forEach(function(k){ var m = k.split("|")[1]; if(m) years[m.slice(0, 4)] = 1; });
+  var cur = sel.value || String(new Date().getFullYear());
+  sel.innerHTML = Object.keys(years).sort().reverse().map(function(y){
+    return '<option value="' + y + '"' + (y === cur ? " selected" : "") + '>' + y + '</option>';
+  }).join("");
+  sel.value = cur;
+}
+function renderScheduleE(){
+  if(!hasFeature("schedulee")){ $("seWrap").innerHTML = planLockHTML("schedulee"); return; }
+  fillSeYear();
+  var year = $("seYear").value || String(new Date().getFullYear());
+  $("seWrap").innerHTML = scheduleETables(year).html;
+}
+$("seYear").addEventListener("change", renderScheduleE);
+$("sePrintBtn").addEventListener("click", function(){
+  if(!hasFeature("schedulee")){ alert(FEATURE_INFO.schedulee.label + " is part of the " + PLANS[FEATURE_INFO.schedulee.min].name + " plan — your current plan is " + PLANS[curPlan()].name + "."); return; }
+  var year = $("seYear").value || String(new Date().getFullYear());
+  printHTML('<h1>Schedule E Summary — ' + esc(year) + '</h1><p>Rental real estate income and expenses, grouped in IRS Schedule E (Form 1040) format. Bookkeeping summary only — not a filed tax form.</p>' + scheduleETables(year).html);
+});
+$("seCsvBtn").addEventListener("click", function(){
+  if(!hasFeature("schedulee")){ alert(FEATURE_INFO.schedulee.label + " is part of the " + PLANS[FEATURE_INFO.schedulee.min].name + " plan — your current plan is " + PLANS[curPlan()].name + "."); return; }
+  var year = $("seYear").value || String(new Date().getFullYear());
+  var q = function(v){ v = String(v == null ? "" : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  var lines = [["Property", "Schedule E line", "Item", "Amount"].join(",")];
+  computeScheduleE(year).forEach(function(b){
+    SE_ORDER.forEach(function(ln){
+      var v = b.lines[ln] || 0;
+      if(ln !== 3 && v === 0) return;
+      lines.push([b.prop.name, ln, SE_LINE_NAMES[ln], v.toFixed(2)].map(q).join(","));
+    });
+    lines.push([b.prop.name, "", "Total expenses", b.totalExp.toFixed(2)].map(q).join(","));
+    lines.push([b.prop.name, "", "Net (rents - expenses)", b.net.toFixed(2)].map(q).join(","));
+    if(b.otherIncome > 0) lines.push([b.prop.name, "", "Other income (memo)", b.otherIncome.toFixed(2)].map(q).join(","));
+  });
+  downloadFile("schedule-e-summary-" + year + ".csv", lines.join("\n"), "text/csv");
+  toast("Schedule E CSV downloaded");
+});
+
+/* ================= Vacancy listings (wraps renderProperties) ================= */
+function listingText(u, p){
+  var city = "";
+  if(p.address){ var parts = p.address.split(","); if(parts.length > 1) city = parts[1].trim(); }
+  var beds = u.beds !== "" && u.beds != null ? u.beds : "";
+  var baths = u.baths !== "" && u.baths != null ? u.baths : "";
+  var headline = (beds ? beds + " Bed" : "Rental") + (baths ? " / " + baths + " Bath" : "") + " — " + u.name + " at " + p.name +
+                 " — " + money(u.rent) + "/mo" + (city ? " in " + city : "");
+  var sizeBits = [];
+  if(u.sqft) sizeBits.push(u.sqft + " sq ft");
+  if(beds) sizeBits.push(beds + " bedroom" + (Number(beds) === 1 ? "" : "s"));
+  if(baths) sizeBits.push(baths + " bathroom" + (Number(baths) === 1 ? "" : "s"));
+  var desc = u.name + " at " + p.name + (p.address ? ", " + p.address : "") + " is available now at " + money(u.rent) + " per month" +
+    (Number(u.deposit) > 0 ? " with a " + money(u.deposit) + " security deposit" : "") + ".\n\n" +
+    (sizeBits.length ? "The unit offers " + sizeBits.join(", ") + ". " : "") +
+    "Rent is due on day " + (u.dueDay || 1) + " of each month.\n\n" +
+    "To schedule a showing or ask a question, call [your phone number]. Serious inquiries only, please — application and screening required.";
+  return { headline: headline, description: desc, updated: todayStr() };
+}
+function renderListings(){
+  var wrap = $("listingWrap");
+  if(!wrap) return;
+  if(!hasFeature("listings")){ wrap.innerHTML = planLockHTML("listings"); return; }
+  var vac = allUnits().filter(function(x){ var s = unitStatus(x.unit); return s === "vacant" || s === "listed"; });
+  if(!vac.length){
+    wrap.innerHTML = '<div class="empty">No vacant or listed units right now. When a unit is marked Vacant or Listed in the table above, its listing builder appears here.</div>';
+    return;
+  }
+  wrap.innerHTML = vac.map(function(x){
+    var u = x.unit, p = x.prop;
+    var l = u.listing || null;
+    return '<div class="leasecard"><div class="ahead"><span class="aname">' + esc(p.name) + ' — ' + esc(u.name) + '</span>' +
+      statusPill(unitStatus(u)) + '<span class="sub" style="margin:0">' + money(u.rent) + '/mo</span><span style="flex:1"></span>' +
+      '<button class="btn secondary small" type="button" data-gen-listing="' + u.id + '">' + (l ? "Regenerate" : "Generate listing") + '</button></div>' +
+      (l ? '<div style="margin-top:8px"><strong>' + esc(l.headline) + '</strong>' +
+            '<textarea class="copybox" data-listing-text="' + u.id + '" style="margin-top:6px">' + esc(l.description) + '</textarea>' +
+            '<div style="margin-top:6px"><button class="btn small" type="button" data-copy-listing="' + u.id + '">Copy listing text</button> ' +
+            '<button class="btn ghost small" type="button" data-save-listing="' + u.id + '">Save edits</button> ' +
+            '<span class="sub">Generated ' + fmtDate(l.updated) + ' from the unit\'s facts — edit freely before posting.</span></div></div>'
+          : '<div class="sub" style="margin-top:6px">No listing written yet — generate one from this unit\'s rent, size, and address.</div>') +
+    '</div>';
+  }).join("");
+  wrap.querySelectorAll("[data-gen-listing]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var f = findUnit(b.getAttribute("data-gen-listing"));
+      if(!f) return;
+      f.unit.listing = listingText(f.unit, f.prop);
+      save(); renderListings(); toast("Listing generated");
+    });
+  });
+  wrap.querySelectorAll("[data-save-listing]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var id = b.getAttribute("data-save-listing");
+      var ta = wrap.querySelector('[data-listing-text="' + id + '"]');
+      var f = findUnit(id);
+      if(f && ta && f.unit.listing){ f.unit.listing.description = ta.value; save(); toast("Listing edits saved"); }
+    });
+  });
+  wrap.querySelectorAll("[data-copy-listing]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var id = b.getAttribute("data-copy-listing");
+      var f = findUnit(id);
+      var ta = wrap.querySelector('[data-listing-text="' + id + '"]');
+      if(f && f.unit.listing) copyText(f.unit.listing.headline + "\n\n" + (ta ? ta.value : f.unit.listing.description), b);
+    });
+  });
+}
+var _origRenderProperties = renderProperties;
+renderProperties = function(){ _origRenderProperties(); renderListings(); };
+
+/* ================= Reminders queue ================= */
+var reminderTexts = [];
+function renderReminders(){
+  var wrap = $("remindersWrap");
+  if(!wrap) return;
+  if(!hasFeature("reminders")){ wrap.innerHTML = planLockHTML("reminders"); return; }
+  reminderTexts = [];
+  var items = [];
+  var byUnit = {};
+  arrearsList().forEach(function(a){
+    if(!byUnit[a.unit.id]) byUnit[a.unit.id] = { f: { prop: a.prop, unit: a.unit }, tenant: a.tenant, total: 0, months: [], maxLate: 0, pastDue: false };
+    var g = byUnit[a.unit.id];
+    g.total += a.owed; g.months.push(a.month);
+    g.maxLate = Math.max(g.maxLate, a.daysLate);
+    if(a.month < monthNow()) g.pastDue = true;
+  });
+  Object.keys(byUnit).forEach(function(id){ items.push(byUnit[id]); });
+  /* upcoming: due within 3 days, nothing recorded yet */
+  var cur = monthNow();
+  allUnits().forEach(function(x){
+    var u = x.unit;
+    if(unitStatus(u) !== "occupied" || byUnit[u.id]) return;
+    var dueDay = Math.min(Math.max(Number(u.dueDay)||1, 1), 28);
+    var dueStr = cur + "-" + pad2(dueDay);
+    var d = daysUntil(dueStr);
+    if(d === null || d < 0 || d > 3) return;
+    if(getPay(u.id, cur)) return;
+    items.push({ f: x, tenant: unitTenantName(u), total: Number(u.rent)||0, months: [cur], maxLate: 0, pastDue: false, upcoming: true, dueIn: d });
+  });
+  if(!items.length){
+    wrap.innerHTML = '<div class="empty">No reminders needed — nobody owes rent and nothing is due in the next 3 days.</div>';
+    return;
+  }
+  items.sort(function(a,b){ return (b.total || 0) - (a.total || 0); });
+  wrap.innerHTML = items.map(function(g, i){
+    var name = g.tenant || "there";
+    var first = name.split(" ")[0];
+    var text;
+    if(g.upcoming){
+      text = "Hi " + first + ", friendly reminder that rent of " + money(g.total) + " for " + g.f.prop.name + " — " + g.f.unit.name +
+             " is due " + (g.dueIn === 0 ? "today" : "in " + g.dueIn + " day(s)") + ". Please let me know if you have any questions. Thank you!";
+      reminderTexts[i] = text;
+      return '<div class="leasecard"><div class="ahead"><span class="aname">' + esc(g.tenant || g.f.unit.name) + '</span><span class="pill info">Due soon</span>' +
+        '<span class="sub" style="margin:0">' + esc(g.f.prop.name) + ' — ' + esc(g.f.unit.name) + ' · ' + money(g.total) + '</span></div>' +
+        '<textarea class="copybox" readonly data-reminder-text="' + i + '">' + esc(text) + '</textarea>' +
+        '<div style="margin-top:6px"><button class="btn small" type="button" data-copy-reminder="' + i + '">Copy message</button></div></div>';
+    }
+    var monthsTxt = g.months.slice().sort().join(", ");
+    if(g.pastDue || g.maxLate > 5){
+      text = "Hi " + first + ", our records show a rent balance of " + money(g.total) + " still open for " + g.f.prop.name + " — " + g.f.unit.name +
+             " (" + monthsTxt + ")" + (g.maxLate > 0 ? ", now " + g.maxLate + " day(s) past the due date" : "") +
+             ". Please arrange payment right away, or contact me today to discuss. If you have already paid, please disregard and send me the payment details so I can update the record. Thank you.";
+    } else {
+      text = "Hi " + first + ", friendly reminder that rent of " + money(g.total) + " for " + g.f.prop.name + " — " + g.f.unit.name +
+             " (" + monthsTxt + ") is still open on our records. If you have already paid, just let me know the date and method and I will update it. Thank you!";
+    }
+    reminderTexts[i] = text;
+    return '<div class="leasecard"><div class="ahead"><span class="aname">' + esc(g.tenant || g.f.unit.name) + '</span>' +
+      (g.pastDue || g.maxLate > 5 ? '<span class="pill unpaid">Late notice</span>' : '<span class="pill prog">Reminder</span>') +
+      '<span class="sub" style="margin:0">' + esc(g.f.prop.name) + ' — ' + esc(g.f.unit.name) + ' · owes ' + money(g.total) + ' · ' + esc(monthsTxt) + '</span></div>' +
+      '<textarea class="copybox" readonly data-reminder-text="' + i + '">' + esc(text) + '</textarea>' +
+      '<div style="margin-top:6px"><button class="btn small" type="button" data-copy-reminder="' + i + '">Copy message</button></div></div>';
+  }).join("");
+  wrap.querySelectorAll("[data-copy-reminder]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var i = Number(b.getAttribute("data-copy-reminder"));
+      copyText(reminderTexts[i] || "", b);
+    });
+  });
+}
+
+/* ================= Wrap renderMoney with the new Money sections ================= */
+var _origRenderMoney = renderMoney;
+renderMoney = function(){
+  _origRenderMoney();
+  renderBankImport();
+  renderScheduleE();
+  attachReceiptControls();
+};
+$("moneyMonth").addEventListener("change", function(){ renderBankImport(); renderScheduleE(); attachReceiptControls(); });
+
+/* ================= Demo data extension ================= */
+$("demoBtn").addEventListener("click", function(){
+  var p1 = null, p2 = null;
+  DB.properties.forEach(function(p){ if(p.name === "Maple St Duplex") p1 = p; if(p.name === "Oak Ave Triplex") p2 = p; });
+  if(!p1 || !p2) return;
+  var unitByName = function(p, n){ return p.units.filter(function(u){ return u.name === n; })[0] || null; };
+  var aptB = unitByName(p2, "Apt B"), aptA = unitByName(p2, "Apt A"), aptC = unitByName(p2, "Apt C");
+  var u1 = unitByName(p1, "Unit 1 (Downstairs)");
+  var tMiller = DB.tenants.filter(function(t){ return t.name === "J. Miller"; })[0] || null;
+  var pm = monthPlus(-1), m = monthNow();
+  var hasApp = function(n){ return DB.applications.some(function(a){ return a.name === n; }); };
+  if(aptB && !hasApp("S. Carter")){
+    var s1 = blankScreening();
+    s1.credit = { status: "Received — clear", cost: 45, note: "Provider report #SC-1042 — score band B" };
+    s1.criminal = { status: "Ordered", cost: 25, note: "Ordered " + todayStr() };
+    DB.applications.push({ id: uid(), date: datePlus(-2), name: "S. Carter", email: "scarter@email.example", phone: "(814) 555-0161",
+      unitId: aptB.id, occupants: 2, pets: "One small dog (12 lb)", income: 3400, employer: "Regional Medical Center",
+      currentAddr: "Rents in Richland — landlord: private owner", currentRent: 875, reason: "Closer to work",
+      notes: "Asked about the laundry and parking. References: current landlord (2 yrs, no late payments reported).",
+      status: "review", screening: s1, convertedTenantId: "" });
+  }
+  if(aptB && !hasApp("D. & P. Weiss")){
+    var s2 = blankScreening();
+    s2.credit = { status: "Received — clear", cost: 45, note: "Provider report #SC-1037" };
+    s2.criminal = { status: "Received — clear", cost: 25, note: "" };
+    s2.eviction = { status: "Received — clear", cost: 15, note: "No filings found" };
+    DB.applications.push({ id: uid(), date: datePlus(-6), name: "D. & P. Weiss", email: "weiss.family@email.example", phone: "(814) 555-0180",
+      unitId: aptB.id, occupants: 3, pets: "None", income: 4100, employer: "School district / self-employed",
+      currentAddr: "Own and are selling a home in Westmont", currentRent: 0, reason: "Downsizing",
+      notes: "Approved — ready to convert to a tenant for Apt B.",
+      status: "approved", screening: s2, convertedTenantId: "" });
+  }
+  if(aptA && !hasApp("M. Osei")){
+    var s3 = blankScreening();
+    s3.eviction = { status: "Received — flagged", cost: 15, note: "One filing in 2023 (dismissed) — see provider report" };
+    DB.applications.push({ id: uid(), date: datePlus(-9), name: "M. Osei", email: "", phone: "(814) 555-0113",
+      unitId: aptA.id, occupants: 1, pets: "None", income: 2600, employer: "Warehouse — night shift",
+      currentAddr: "Johnstown", currentRent: 700, reason: "Lease not renewed",
+      notes: "Declined — income below 3x rent for this unit.",
+      status: "declined", screening: s3, convertedTenantId: "" });
+  }
+  if(u1 && tMiller && !DB.leases.some(function(l){ return l.unitId === u1.id || l.tenantName === tMiller.name; })){
+    DB.leases.push({ id: uid(), created: datePlus(-30), unitId: u1.id, tenantName: "J. Miller", state: "PA",
+      start: tMiller.leaseStart || "2025-06-01", end: tMiller.leaseEnd || "", rent: 850, deposit: 850,
+      lateFee: 50, grace: 5, pets: "no", petDetails: "", smoking: "no",
+      utilLandlord: "Water / sewer (shared meter)", utilTenant: "Electric, gas, internet",
+      rules: "Quiet hours 10 PM – 8 AM\nNo parking on the lawn" });
+  }
+  var hasDoc = function(n){ return DB.documents.some(function(d){ return d.name === n; }); };
+  var b64 = function(s){ return btoa(unescape(encodeURIComponent(s))); };
+  if(!hasDoc("Maple St — insurance declarations.txt")){
+    var insTxt = "POLICY DECLARATIONS (sample document stored in LandlordDesk)\nCarrier: Keystone Mutual — Policy #KM-88412\nProperty: Maple St Duplex, 110 Maple St, Johnstown, PA 15902\nCoverage: dwelling + liability. Renewal due each January.";
+    DB.documents.push({ id: uid(), scope: "prop:" + p1.id, name: "Maple St — insurance declarations.txt",
+      size: insTxt.length, type: "text/plain", dataUrl: "data:text/plain;base64," + b64(insTxt), date: datePlus(-15), shared: false });
+  }
+  if(tMiller && !hasDoc("Welcome letter — Miller.txt")){
+    var welTxt = "Welcome to Maple St Duplex, Unit 1!\n\nRent of $850 is due on the 1st. Trash pickup is Tuesday. The main water shutoff is in the basement, left wall behind the water heater. For maintenance, use the tenant portal or call the office number on file.\n\n— Your landlord";
+    DB.documents.push({ id: uid(), scope: "tenant:" + tMiller.id, name: "Welcome letter — Miller.txt",
+      size: welTxt.length, type: "text/plain", dataUrl: "data:text/plain;base64," + b64(welTxt), date: datePlus(-20), shared: true });
+  }
+  var faucet = DB.expenses.filter(function(x){ return (x.note || "").indexOf("faucet") >= 0; })[0];
+  if(faucet && !faucet.receipt){
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150"><rect width="300" height="150" fill="#ffffff"/><text x="16" y="32" font-family="monospace" font-size="15" fill="#111">HARBOR SUPPLY</text><text x="16" y="58" font-family="monospace" font-size="12" fill="#111">Kitchen faucet cartridge .... $64.20</text><text x="16" y="80" font-family="monospace" font-size="12" fill="#111">Plumber tape ................ $4.10</text><text x="16" y="108" font-family="monospace" font-size="12" fill="#111">TOTAL ...................... $189.00</text><text x="16" y="132" font-family="monospace" font-size="11" fill="#555">Sample receipt attached in LandlordDesk</text></svg>';
+    faucet.receipt = { name: "faucet-repair-receipt.svg", size: svg.length, dataUrl: "data:image/svg+xml;base64," + btoa(svg) };
+  }
+  if(!DB.bankTxns.length){
+    DB.bankTxns.push(
+      { id: uid(), date: m + "-04", desc: "HARBOR SUPPLY #221", amount: -64.20, status: "unmatched", category: "", linkedId: "" },
+      { id: uid(), date: m + "-05", desc: "CHECK 1042 — SNOW REMOVAL", amount: -150.00, status: "unmatched", category: "", linkedId: "" },
+      { id: uid(), date: m + "-02", desc: "ACH DEPOSIT — COIN LAUNDRY SVC", amount: 86.00, status: "unmatched", category: "", linkedId: "" }
+    );
+  }
+  var incMatch = DB.income.filter(function(x){ return (x.note || "").indexOf("Apt C") >= 0; })[0];
+  if(aptC && !DB.lateFeesApplied.some(function(f){ return (f.unitId === aptC.id && f.month === pm) || (incMatch && incMatch.id && f.incomeId === incMatch.id); })){
+    DB.lateFeesApplied.push({ id: uid(), unitId: aptC.id, month: pm, amount: 50, date: pm + "-15", incomeId: incMatch ? incMatch.id : "" });
+  }
+  save(); renderAll();
+});
+
+/* Initial paint for the new tabs (core renderAll ran before this script loaded) */
+renderAll();
+</script>
+</body>
+</html>

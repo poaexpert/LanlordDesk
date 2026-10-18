@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LandlordDesk — The complete desk for landlords. Plans from $49.99/mo.</title>
+<meta name="description" content="LandlordDesk tracks rent, applications, leases, maintenance, money, documents, and inspection readiness. Flat plans from $49.99/month — priced per landlord, never per unit.">
+<style>
+  :root{
+    --ink:#1c2530; --muted:#66727f; --line:#dde3e9; --bg:#f4f6f8; --card:#ffffff;
+    --brand:#14532d; --brand2:#166534; --accent:#b45309;
+    --ok:#15803d; --okbg:#e8f6ec; --warn:#b45309; --warnbg:#fdf3e2; --bad:#b91c1c; --badbg:#fdecec;
+    --info:#274b9f; --infobg:#e8eefc;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.55}
+  a{color:var(--brand2)}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+
+  /* header */
+  header.topbar{background:var(--brand);color:#fff;padding:14px 0;position:sticky;top:0;z-index:20}
+  .topbar .row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .logo{font-size:22px;font-weight:800;letter-spacing:.2px;color:#fff;text-decoration:none}
+  .logo span{color:#bbf7d0}
+  .topbar .spacer{flex:1}
+  .topbar nav a{color:#fff;text-decoration:none;font-size:14.5px;font-weight:600;margin-right:18px;opacity:.92}
+  .topbar nav a:hover{opacity:1;text-decoration:underline}
+  .btn{display:inline-block;background:var(--brand2);color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:15.5px;font-weight:700;cursor:pointer;text-decoration:none}
+  .btn:hover{background:var(--brand)}
+  .btn.on-dark{background:#fff;color:var(--brand)}
+  .btn.on-dark:hover{background:#e8f6ec}
+  .btn.big{padding:14px 28px;font-size:17px;border-radius:10px}
+  .btn.secondary{background:#fff;color:var(--brand);border:1.5px solid var(--brand2)}
+  .btn.secondary:hover{background:var(--okbg)}
+
+  /* hero */
+  .hero{background:linear-gradient(180deg,var(--brand) 0%,#0f4224 100%);color:#fff;padding:64px 0 72px;text-align:center}
+  .hero h1{font-size:44px;line-height:1.12;margin:0 0 14px;font-weight:800;letter-spacing:-.5px}
+  .hero h1 .hl{color:#bbf7d0}
+  .hero p.promise{font-size:20px;line-height:1.45;max-width:760px;margin:0 auto 26px;opacity:.95}
+  .price-anchor{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:9px 20px;font-size:16px;font-weight:700;margin-bottom:28px}
+  .price-anchor .notper{color:#fcd9a8}
+  .hero .fineprint{font-size:13.5px;opacity:.8;margin-top:16px}
+  .hero-stats{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:38px}
+  .hero-stats .stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:var(--radius);padding:14px 20px;min-width:170px}
+  .hero-stats .value{font-size:23px;font-weight:800}
+  .hero-stats .label{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;opacity:.85;font-weight:700}
+
+  /* sections */
+  section{padding:58px 0}
+  section.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  h2{font-size:30px;margin:0 0 8px;font-weight:800;letter-spacing:-.3px;text-align:center}
+  .sub{color:var(--muted);font-size:16.5px;text-align:center;max-width:720px;margin:0 auto 34px}
+  h3{font-size:17px;margin:0 0 6px}
+
+  /* feature grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+  .feature{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+  .feature .icon{font-size:26px;line-height:1;margin-bottom:10px}
+  .feature p{margin:0;color:var(--muted);font-size:15px}
+  .feature.star{border:2px solid var(--accent);background:linear-gradient(180deg,#fffdf7,#fff)}
+  .badge{display:inline-block;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:999px;margin-bottom:10px}
+  .badge.only{background:var(--warnbg);color:var(--warn);border:1px solid #f0dcb2}
+  .badge.core{background:var(--okbg);color:var(--ok);border:1px solid #cdeeda}
+
+  /* comparison */
+  table{width:100%;border-collapse:collapse;font-size:15px;background:#fff}
+  th,td{padding:12px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+  th{font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  tr:last-child td{border-bottom:none}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  tr.us td{background:var(--okbg);font-weight:700}
+  .tablecard{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;max-width:860px;margin:0 auto}
+  .callout{max-width:860px;margin:22px auto 0;background:var(--infobg);border:1px solid #cfdbfa;border-radius:var(--radius);padding:16px 20px;font-size:15px;color:#22335c}
+  .callout strong{color:var(--info)}
+
+  /* pricing */
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:18px;max-width:1180px;margin:0 auto}
+  .plan{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px;text-align:center}
+  .plan.best{border:2px solid var(--brand2);position:relative}
+  .plan .pname{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:800}
+  .plan .price{font-size:44px;font-weight:800;margin:8px 0 2px}
+  .plan .price small{font-size:16px;color:var(--muted);font-weight:600}
+  .plan .pnote{color:var(--muted);font-size:14px;margin-bottom:18px}
+  .plan ul{text-align:left;margin:0 0 22px;padding-left:20px;font-size:15px}
+  .plan ul li{margin-bottom:7px}
+  .save{display:inline-block;background:var(--warnbg);color:var(--warn);border:1px solid #f0dcb2;font-weight:800;font-size:12.5px;border-radius:999px;padding:3px 11px;margin-bottom:10px}
+
+  /* faq */
+  .faq{max-width:820px;margin:0 auto}
+  .faq details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px}
+  .faq summary{font-weight:700;font-size:16px;cursor:pointer}
+  .faq p{margin:10px 0 2px;color:var(--muted);font-size:15px}
+
+  /* cta band + footer */
+  .ctaband{background:var(--brand);color:#fff;text-align:center;padding:52px 0}
+  .ctaband h2{color:#fff}
+  .ctaband p{opacity:.92;max-width:640px;margin:0 auto 24px;font-size:17px}
+  footer{padding:34px 0 44px;color:var(--muted);font-size:14px}
+  footer .row{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+  footer .spacer{flex:1}
+  @media (max-width:640px){ .hero h1{font-size:33px} .hero p.promise{font-size:18px} }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap row">
+    <a class="logo" href="landing.html">Landlord<span>Desk</span></a>
+    <div class="spacer"></div>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn on-dark" href="app.html">Open the live demo</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <h1>Every part of landlording,<br>on <span class="hl">one desk.</span></h1>
+    <p class="promise">LandlordDesk is the complete tracking system for landlords of every size — applications, leases, rent, tenants, maintenance, money, documents, and inspection readiness in one place. No spreadsheets. No shoebox of receipts. And never a per-unit bill.</p>
+    <div>
+      <span class="price-anchor">Plans from $49.99/month &nbsp;·&nbsp; <span class="notper">flat per landlord — never per unit</span> &nbsp;·&nbsp; annual billing = 10 months</span>
+    </div>
+    <div>
+      <a class="btn big on-dark" href="app.html">Open the live demo</a>
+    </div>
+    <div class="fineprint">The demo is the real product, loaded with a sample portfolio. Click around — everything works. 30-day free trial at launch, no card required.</div>
+    <div class="hero-stats">
+      <div class="stat"><div class="value">14</div><div class="label">Workspaces in one tool</div></div>
+      <div class="stat"><div class="value">$49.99</div><div class="label">Starting plan — flat, not per unit</div></div>
+      <div class="stat"><div class="value">25 items</div><div class="label">Section 8 inspection checklist</div></div>
+      <div class="stat"><div class="value">1 click</div><div class="label">Schedule E export at tax time</div></div>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <h2>The full job, not half of it</h2>
+    <p class="sub">Most landlord tools cover either finding tenants or collecting rent. LandlordDesk covers the whole run — list the vacancy, screen the applicant, build the lease, collect the rent, fix the sink, and hand your accountant a clean Schedule E.</p>
+    <div class="grid">
+
+      <div class="feature">
+        <div class="icon">💵</div>
+        <span class="badge core">Rent</span>
+        <h3>Rent tracking &amp; arrears</h3>
+        <p>A monthly tracker for every unit — who paid, how much, when, and how. The arrears table shows exactly who owes what, for which month, and how many days late, based on each lease's due day. Full payment history across every month, always one click away.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">📝</div>
+        <span class="badge core">Applications</span>
+        <h3>Applications + screening records</h3>
+        <p>Every application in one pipeline — New, Under review, Approved, Declined — with income, occupants, pets, employer, and rental history on file. Track each screening check (credit, criminal, eviction) with its status, cost, and your provider's result, then approve and convert the applicant into a tenant in one click.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">📄</div>
+        <span class="badge core">Leases</span>
+        <h3>Lease builder</h3>
+        <p>Pick the unit and the lease builds itself — rent, deposit, tenant, and term prefilled from your records. Set the late fee and grace period, toggle pets, smoking, and utility splits, add your house rules, and print a clean lease with signature lines ready. Saved leases stay re-printable.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">🔑</div>
+        <span class="badge core">Tenant view</span>
+        <h3>A window for your tenants</h3>
+        <p>See exactly what your tenant sees: their balance broken down by month, what's due and when, their lease details, and the documents you've shared with them. Tenants submit maintenance requests that land straight in your maintenance list — no more repair requests buried in text messages.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">🗂️</div>
+        <span class="badge core">Documents</span>
+        <h3>Document storage</h3>
+        <p>Leases, letters, receipts, ID copies — attach any file to the property, unit, or tenant it belongs to, and flag it shared when the tenant should see it. Receipts attach directly to the expense they prove. Everything is where the record is.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">🏦</div>
+        <span class="badge core">Money</span>
+        <h3>Bank import &amp; per-property P&amp;L</h3>
+        <p>Import a CSV from your bank or QuickBooks and file each transaction into the right property and category with one click — no retyping statements. See profit and loss per property for any month, a year-end summary by category, and where every dollar of repairs, taxes, and utilities went.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">⏰</div>
+        <span class="badge core">Late fees</span>
+        <h3>Late fees &amp; reminders, handled</h3>
+        <p>When rent runs 5+ days late, LandlordDesk suggests the exact late fee from that tenant's lease — one click applies it and records it. The reminders queue writes the friendly reminder or the firm late notice for every tenant who owes, ready to copy into a text or email. Polite, consistent, and never forgotten again.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">🧾</div>
+        <span class="badge core">Taxes</span>
+        <h3>Schedule E export</h3>
+        <p>At tax time, export a per-property Schedule E summary — rents received and expenses already mapped to the IRS lines (repairs, insurance, utilities, taxes) — printable or as a CSV your accountant will actually thank you for.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">🔧</div>
+        <span class="badge core">Maintenance</span>
+        <h3>Maintenance &amp; vendors</h3>
+        <p>Every request tracked by property, priority, and status, with the vendor assigned and the cost recorded — so "what did that plumbing call run me this year?" is a lookup, not a memory test. Your vendor directory (plumber, electrician, HVAC) feeds the picker, so the right number is always attached to the job.</p>
+      </div>
+
+      <div class="feature star">
+        <div class="icon">✅</div>
+        <span class="badge only">Only in LandlordDesk</span>
+        <h3>Section 8 / HQS inspection checklist</h3>
+        <p>The feature no competing landlord platform offers: a 25-item, room-by-room pre-inspection walk-through modeled on housing-quality inspections — paint, detectors, windows, plumbing, GFI outlets, railings, egress, lead-paint check — with Pass / Fail / Fix Needed per item and a readiness score per property. Walk it before the inspector does, fix what fails, and protect the rent check that depends on passing.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="compare">
+  <div class="wrap">
+    <h2>Why flat pricing wins</h2>
+    <p class="sub">Per-unit pricing sounds small until you own more than a few doors. Avail's paid plan, Unlimited Plus, charges <strong>$9 per unit, per month</strong> — and the bill grows with every door you buy. LandlordDesk charges one flat plan price per landlord, matched to the size of your portfolio.</p>
+    <div class="tablecard">
+      <table>
+        <thead>
+          <tr><th>Your portfolio</th><th class="num">Avail Unlimited Plus<br>($9/unit/mo)</th><th class="num">LandlordDesk<br>(flat plan)</th><th class="num">You save / month</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>10 units</td><td class="num">$90.00</td><td class="num">$49.99 <small>(Desk)</small></td><td class="num">$40.01</td></tr>
+          <tr><td>25 units</td><td class="num">$225.00</td><td class="num">$99.99 <small>(Pro)</small></td><td class="num">$125.01</td></tr>
+          <tr class="us"><td>50 units</td><td class="num">$450.00</td><td class="num">$199.99 <small>(Portfolio)</small></td><td class="num">$250.01</td></tr>
+          <tr><td>100 units</td><td class="num">$900.00</td><td class="num">$299.00 <small>(Empire)</small></td><td class="num">$601.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout"><strong>The math that matters:</strong> with per-unit pricing, every door you buy raises your software bill — at 50 units, Avail charges $450 a month and keeps climbing. With LandlordDesk, the plan that fits 50 units is $199.99 flat, and Empire caps your software cost at $299/month no matter how large the portfolio grows.</div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <h2>Four plans. Zero per-unit fees.</h2>
+    <p class="sub">Every plan is one flat price per landlord — never a charge per door. The tier sets your unit cap and unlocks deeper tools as your portfolio grows. Annual billing costs 10 months — two months free — on every plan, and every plan starts with a 30-day free trial, no card required.</p>
+    <div class="plans">
+      <div class="plan">
+        <div class="pname">Desk — up to 10 units</div>
+        <div class="price">$49.99<small>/month</small></div>
+        <div class="pnote">$499/year — two months free. For the landlord getting off paper and spreadsheets.</div>
+        <ul>
+          <li>Properties &amp; units, with deposits &amp; due days</li>
+          <li>Tenant profiles &amp; lease tracking</li>
+          <li>Rent tracking, payment history &amp; arrears</li>
+          <li>Maintenance requests &amp; vendor directory</li>
+          <li>Tasks, notes &amp; full data export (JSON/CSV)</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <a class="btn secondary" href="app.html">Try the live demo first</a>
+      </div>
+      <div class="plan best">
+        <div class="save">Most popular</div>
+        <div class="pname">Pro — up to 25 units</div>
+        <div class="price">$99.99<small>/month</small></div>
+        <div class="pnote">$999/year — two months free. The full leasing funnel, end to end.</div>
+        <ul>
+          <li>Everything in Desk</li>
+          <li>Rental applications &amp; screening tracker</li>
+          <li>Lease builder — printable, ready to sign</li>
+          <li>Tenant view — balances &amp; shared documents</li>
+          <li>Document storage &amp; receipt attach</li>
+          <li>Bank CSV import &amp; one-click categorizing</li>
+          <li>Automatic late fees &amp; reminders queue</li>
+          <li>Vacancy listing builder</li>
+        </ul>
+        <a class="btn" href="app.html">Try the live demo first</a>
+      </div>
+      <div class="plan">
+        <div class="pname">Portfolio — up to 50 units</div>
+        <div class="price">$199.99<small>/month</small></div>
+        <div class="pnote">$1,999/year — two months free. For owners who run their rentals like a business.</div>
+        <ul>
+          <li>Everything in Pro</li>
+          <li>Per-property P&amp;L, monthly &amp; year-end</li>
+          <li>Schedule E export &amp; year-end tax pack</li>
+          <li>Section 8 / HQS inspection suite with readiness scores</li>
+          <li>Every money &amp; tax workspace unlocked</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <a class="btn secondary" href="app.html">Try the live demo first</a>
+      </div>
+      <div class="plan">
+        <div class="pname">Empire — unlimited units</div>
+        <div class="price">$299<small>/month</small></div>
+        <div class="pnote">$2,999/year — two months free. No unit cap, ever.</div>
+        <ul>
+          <li>Everything in Portfolio</li>
+          <li>Unlimited units &amp; properties</li>
+          <li>All 14 workspaces, fully unlocked</li>
+          <li>One flat bill that never grows with your portfolio</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <a class="btn secondary" href="app.html">Try the live demo first</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="faq">
+  <div class="wrap">
+    <h2>Honest answers</h2>
+    <p class="sub">We'd rather tell you exactly where things stand than oversell. Here's the straight version.</p>
+    <div class="faq">
+
+      <details>
+        <summary>Where does my data live?</summary>
+        <p>In this demo build, your data is stored in your own browser, on your own device — nothing is uploaded anywhere, and there's no account to create. You can export a complete backup of everything (JSON) or a rent roll (CSV) at any time from the Notes &amp; Data tab. The founder launch adds proper accounts with cloud sync, so your data follows you between phone and computer with automatic backups.</p>
+      </details>
+
+      <details>
+        <summary>Can tenants pay rent through LandlordDesk?</summary>
+        <p>In the demo, the tenant view shows the tenant's balance and records payments into your rent tracker, so you can see exactly how the flow works — but no real money moves yet. Live online rent payments (ACH/card, with tenant autopay) arrive with the hosted launch, alongside accounts and cloud sync.</p>
+      </details>
+
+      <details>
+        <summary>Does it run credit and background checks?</summary>
+        <p>LandlordDesk tracks screening for every applicant — credit, criminal, and eviction checks, each with its status, cost, and result recorded from your screening provider — and keeps that record attached to the application permanently. Ordering reports from a bureau inside the app is a launch integration; today you order from your provider as usual and record the result here.</p>
+      </details>
+
+      <details>
+        <summary>What exactly is the "founder launch"?</summary>
+        <p>LandlordDesk is being launched by its founder, in the open. The product you can try right now is complete and working as a single-device tool. The hosted launch adds the pieces that need servers: accounts and cloud sync, live rent payments, in-app screening orders, automatic reminder sending, and state lease packs with e-signature. Founding members lock in the launch ladder — four flat plans from $49.99 to $299/month — and no plan is ever priced per unit.</p>
+      </details>
+
+      <details>
+        <summary>Will the inspection checklist guarantee I pass my Section 8 inspection?</summary>
+        <p>No — and be wary of any tool that promises that. The checklist is a preparation walk-through modeled on common housing-quality (HQS-style) inspection items: it helps you find and fix the things inspectors commonly cite, before they cite them, and gives each property a readiness score. The official inspection is still the inspector's call.</p>
+      </details>
+
+      <details>
+        <summary>Is the price really flat — what happens when I buy more units?</summary>
+        <p>Really flat. Every plan is one fixed monthly price for you, the landlord — never a charge per unit, per property, or per tenant. Plans are sized by portfolio (Desk up to 10 units, Pro up to 25, Portfolio up to 50, Empire unlimited), so your bill only changes when you choose to move up a plan — never automatically because you bought another door. Annual billing on any plan costs 10 months, so two months are free.</p>
+      </details>
+
+    </div>
+  </div>
+</section>
+
+<div class="ctaband">
+  <div class="wrap">
+    <h2>See your whole portfolio on one desk</h2>
+    <p>Open the live demo — it's loaded with a sample portfolio, so every tab is already doing something real. Two minutes in, you'll know if it beats your spreadsheet.</p>
+    <a class="btn big on-dark" href="app.html">Open the live demo</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div><strong style="color:var(--brand)">LandlordDesk</strong> — the complete desk for small landlords.</div>
+    <div class="spacer"></div>
+    <div>Contact: hello@landlorddesk.example &nbsp;·&nbsp; Support: support@landlorddesk.example</div>
+  </div>
+  <div class="wrap" style="margin-top:10px">
+    <div>© 2026 LandlordDesk. Placeholder contact details — final domain and mailboxes are set at launch. Competitor pricing shown (Avail Unlimited Plus, $9/unit/month) was checked October 2026; plans and prices change — verify before you rely on it.</div>
+  </div>
+</footer>
+
+</body>
+</html>
