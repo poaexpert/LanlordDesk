@@ -83,6 +83,10 @@
   .plan-lock-card .plan-lock-title{font-size:16.5px;font-weight:800;color:var(--ink);margin-bottom:8px}
   .plan-lock-card p{margin:6px 0;font-size:14px}
   .gate-note{border:1.5px dashed #c4ced6;border-radius:var(--radius);padding:12px 16px;background:#fbfcfd;color:var(--muted);font-size:13.5px;margin-top:10px}
+  .cta-card{border:2px solid var(--brand2);border-radius:var(--radius);padding:20px 22px;background:#f2f8f3;margin:14px 0 4px}
+  .cta-card .cta-title{font-size:17px;font-weight:800;color:var(--brand);margin-bottom:6px}
+  .cta-card p{margin:6px 0 14px;font-size:14px}
+  .receipt-chosen{font-size:13px;color:var(--muted);margin-top:2px}
   .monthbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
   .monthbar input[type=month]{width:auto}
   .checkroom{border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
@@ -135,7 +139,24 @@
     .panel{padding:14px}
     input[type=number]{width:88px}
     .checkitem select{width:118px}
-    nav.tabs button{padding:8px 10px;font-size:13px}
+    /* Phone findability: the tab bar becomes one horizontally scrolling row
+       so all 14 tabs stay reachable instead of wrapping into a tall stack. */
+    nav.tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:10px 10px 0}
+    nav.tabs button{padding:8px 10px;font-size:13px;flex:0 0 auto;white-space:nowrap}
+    /* Inline forms stack: every field and every primary add button
+       (+ Add property / unit / tenant / expense / income …) goes full width,
+       so nothing is squeezed off-scan on a narrow screen. */
+    form.inline{flex-direction:column;align-items:stretch}
+    form.inline .field{width:100%}
+    form.inline input,form.inline select,form.inline textarea{width:100%}
+    form.inline .btn{width:100%;padding:12px 14px;font-size:15px}
+    /* Wide tables scroll sideways inside the panel instead of crushing
+       their row action buttons (Delete / Attach receipt …) off-screen. */
+    table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .summary{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+    .cols{grid-template-columns:1fr}
+    .planctl{max-width:100%}
+    .planctl select{max-width:100%}
   }
 </style>
 </head>
@@ -184,6 +205,7 @@
   <section class="panel" id="panel-dashboard">
     <h2>Dashboard</h2>
     <div class="sub">Your whole portfolio at a glance — updated automatically from every other tab.</div>
+    <div id="dashCta"></div>
     <div class="summary" id="dashSummary"></div>
     <div class="cols">
       <div class="mini"><h3>Leases expiring (next 60 days)</h3><div id="dashLeases"></div></div>
@@ -303,6 +325,7 @@
         </select></div>
       <div class="field"><label for="expAmt">Amount ($)</label><input type="number" id="expAmt" min="0" step="0.01" required placeholder="0.00"></div>
       <div class="field"><label for="expNote">Note</label><input id="expNote" placeholder="What was it for?"></div>
+      <div class="field" id="expReceiptField"><label for="expReceiptFile">📷 Scan / attach receipt (optional)</label><input type="file" id="expReceiptFile" accept="image/*"><div class="receipt-chosen" id="expReceiptChosen" hidden></div><div class="gate-note" id="expReceiptGate" hidden style="margin-top:6px"></div></div>
       <button class="btn" type="submit">+ Add expense</button>
     </form>
     <div id="expTableWrap"></div>
@@ -813,6 +836,26 @@ function renderDashboard(){
   var openMt = DB.maintenance.filter(function(x){ return x.status !== "done"; }).length;
   var leases = expiringLeases();
   var netColor = mm.net < 0 ? "var(--bad)" : "var(--brand)";
+
+  /* First-run guidance: only while the portfolio is completely empty
+     (0 properties). Once a property exists this stays silent — no nagging. */
+  var cta = document.getElementById("dashCta");
+  if(cta){
+    if(!DB.properties.length){
+      cta.innerHTML = '<div class="cta-card"><div class="cta-title">👋 Welcome to LandlordDesk — start with your first property</div>' +
+        '<p>Everything begins with a property: <strong>add a property → add its units → add tenants</strong>, and the rent tracker, arrears, and money views fill in from there.</p>' +
+        '<button class="btn" type="button" id="dashAddPropBtn">+ Add your first property</button></div>';
+      var ctaBtn = document.getElementById("dashAddPropBtn");
+      if(ctaBtn) ctaBtn.addEventListener("click", function(){
+        var tab = document.querySelector('#tabs button[data-tab="properties"]');
+        if(tab) tab.click();
+        var nameInput = document.getElementById("propName");
+        if(nameInput) nameInput.focus();
+      });
+    } else {
+      cta.innerHTML = "";
+    }
+  }
 
   document.getElementById("dashSummary").innerHTML =
     '<div class="stat"><div class="label">Portfolio</div><div class="value">' + DB.properties.length + ' properties</div><div class="note">' + totalUnits + ' unit(s) total</div></div>' +
@@ -1465,18 +1508,83 @@ function renderMoney(){
   renderYear();
 }
 
+/* -------- Receipt at expense-creation time --------
+   The Add Expense form carries its own optional receipt control, so a
+   receipt can be scanned/attached in the same step as logging the expense
+   (previously it could only be attached afterwards, per saved row).
+   The stored shape is identical to the per-row attach: exp.receipt =
+   { name, size, dataUrl }, with the same 2 MB guard and quota-safe save.
+   Receipt attach is a Pro feature, so on lower plans the form control gets
+   the same gate treatment as the per-row control: no working input, just
+   the explanatory lock note. */
+var pendingExpReceipt = null;
+function clearPendingExpReceipt(){
+  pendingExpReceipt = null;
+  var inp = document.getElementById("expReceiptFile");
+  if(inp) inp.value = "";
+  var ch = document.getElementById("expReceiptChosen");
+  if(ch){ ch.hidden = true; ch.innerHTML = ""; }
+}
+function syncExpReceiptField(){
+  var wrap = document.getElementById("expReceiptField"); if(!wrap) return;
+  var inp = document.getElementById("expReceiptFile");
+  var gate = document.getElementById("expReceiptGate");
+  var ch = document.getElementById("expReceiptChosen");
+  if(!hasFeature("receipts")){
+    if(pendingExpReceipt) clearPendingExpReceipt();
+    if(inp){ inp.hidden = true; inp.disabled = true; }
+    if(ch){ ch.hidden = true; ch.innerHTML = ""; }
+    if(gate){
+      gate.hidden = false;
+      gate.innerHTML = "🔒 <strong>Receipt attach</strong> is part of the <strong>" + esc(PLANS[FEATURE_INFO.receipts.min].name) + "</strong> plan (" + esc(PLANS[FEATURE_INFO.receipts.min].price) + ") — your current plan is " + esc(PLANS[curPlan()].name) + ".";
+    }
+  } else {
+    if(inp){ inp.hidden = false; inp.disabled = false; }
+    if(gate){ gate.hidden = true; gate.innerHTML = ""; }
+  }
+}
+var expReceiptInput = document.getElementById("expReceiptFile");
+if(expReceiptInput){
+  expReceiptInput.addEventListener("change", function(){
+    var file = expReceiptInput.files && expReceiptInput.files[0];
+    if(!file){ clearPendingExpReceipt(); return; }
+    if(file.size > 2 * 1024 * 1024){ alert("That file is over 2 MB — receipts stored in this browser prototype need to stay modest in size."); clearPendingExpReceipt(); return; }
+    readFileAsDataURL(file).then(function(url){
+      pendingExpReceipt = { name: file.name, size: file.size, dataUrl: url };
+      var ch = document.getElementById("expReceiptChosen");
+      if(ch){
+        ch.hidden = false;
+        ch.innerHTML = "✓ <strong>" + esc(file.name) + "</strong> will be attached when you add the expense. " +
+          '<button type="button" class="btn ghost small" id="expReceiptRemove">Remove</button>';
+        var rm = document.getElementById("expReceiptRemove");
+        if(rm) rm.addEventListener("click", clearPendingExpReceipt);
+      }
+    });
+  });
+}
+
 document.getElementById("expForm").addEventListener("submit", function(e){
   e.preventDefault();
   var scope = document.getElementById("expScope").value;
   if(!scope){ alert("Add a property first, then log expenses against it."); return; }
-  DB.expenses.push({ id: uid(),
+  var exp = { id: uid(),
     date: document.getElementById("expDate").value,
     scope: scope,
     category: document.getElementById("expCat").value,
     amount: Number(document.getElementById("expAmt").value)||0,
-    note: document.getElementById("expNote").value.trim() });
+    note: document.getElementById("expNote").value.trim() };
+  var hadReceipt = !!(pendingExpReceipt && hasFeature("receipts"));
+  if(hadReceipt) exp.receipt = pendingExpReceipt;
+  DB.expenses.push(exp);
+  if(hadReceipt && !trySaveDB()){
+    /* Same quota behavior as the per-row attach: the expense stays,
+       the receipt that did not fit is dropped, and the user is told. */
+    delete exp.receipt; save();
+    alert("That receipt would not fit in this browser's local storage — the expense was saved without it.");
+  }
+  clearPendingExpReceipt();
   document.getElementById("expAmt").value = ""; document.getElementById("expNote").value = "";
-  moneyMonthEl.value = (document.getElementById("expDate").value || monthNow()).slice(0,7);
+  moneyMonthEl.value = (exp.date || monthNow()).slice(0,7);
   save(); renderMoney(); renderDashboard(); toast("Expense added");
 });
 document.getElementById("incForm").addEventListener("submit", function(e){
@@ -2409,6 +2517,7 @@ function renderDocuments(){
 
 /* ================= Receipt attach (Money tab, wraps renderMoney) ================= */
 function attachReceiptControls(){
+  syncExpReceiptField();
   var wrap = $("expTableWrap");
   if(!wrap) return;
   if(!hasFeature("receipts")){
