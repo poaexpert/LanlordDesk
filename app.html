@@ -126,6 +126,29 @@
   .sigrow{display:flex;gap:40px;margin-top:34px;flex-wrap:wrap}
   .sigbox{flex:1 1 220px}
   .sigline{border-bottom:1.5px solid #000;height:34px;margin-bottom:4px}
+  /* Accounts gate (local accounts build): the app starts locked on the
+     sign-in / create-account screen until a session or demo entry. */
+  #authGate{display:none}
+  body.auth-locked{overflow:hidden}
+  body.auth-locked header.topbar,body.auth-locked nav.tabs,body.auth-locked main,body.auth-locked footer{display:none!important}
+  body.auth-locked #authGate{display:flex}
+  #authGate{min-height:100vh;align-items:flex-start;justify-content:center;padding:38px 16px 56px;background:linear-gradient(180deg,var(--brand) 0,var(--brand) 216px,var(--bg) 216px)}
+  .auth-card{background:#fff;border:1px solid var(--line);border-radius:16px;max-width:432px;width:100%;padding:26px 26px 20px;box-shadow:0 14px 36px rgba(20,40,25,.18)}
+  .auth-card .logo{font-size:28px;color:var(--brand)}
+  .auth-card .logo span{color:var(--brand2)}
+  .auth-tag{color:var(--muted);font-size:14px;margin:6px 0 18px}
+  .auth-tabs{display:flex;gap:8px;margin-bottom:18px}
+  .auth-tabs button{flex:1;background:#eef3f0;color:var(--brand);border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:14px;font-weight:700;cursor:pointer}
+  .auth-tabs button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  #authGate .field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+  #authGate .field label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  #authGate .field input,#authGate .field select{width:100%}
+  .auth-submit{width:100%;padding:11px 14px;font-size:15px;margin-top:2px}
+  .auth-error{background:var(--badbg);color:var(--bad);border:1px solid #f0c4c4;border-radius:8px;padding:9px 12px;font-size:13.5px;margin:0 0 12px}
+  .auth-demo{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:20px;color:var(--muted);font-size:14px;flex-wrap:wrap;text-align:center}
+  .auth-fineprint{color:var(--muted);font-size:12.5px;margin:16px 0 0;text-align:center}
+  .acctctl{display:flex;align-items:center;gap:9px}
+  .acctname{font-size:13.5px;font-weight:700}
   @media print{
     body>*:not(#printArea){display:none !important}
     #printArea{display:block !important;color:#000;font-size:12.5px;line-height:1.55}
@@ -160,7 +183,44 @@
   }
 </style>
 </head>
-<body>
+<body class="auth-locked">
+<section id="authGate" aria-label="Sign in to LandlordDesk">
+  <div class="auth-card">
+    <div class="logo">Landlord<span>Desk</span></div>
+    <p class="auth-tag">Everything about your rentals — rent, tenants, maintenance, money &amp; inspections — in one place. Create your account or sign in to pick up right where you left off.</p>
+    <div class="auth-tabs">
+      <button type="button" id="showSignupBtn" class="active">Create your account</button>
+      <button type="button" id="showSigninBtn">Sign in</button>
+    </div>
+    <form id="signupForm" novalidate>
+      <div class="field"><label for="suName">Landlord / business name</label><input id="suName" type="text" autocomplete="name" placeholder="e.g. Maple St Rentals LLC"></div>
+      <div class="field"><label for="suEmail">Email</label><input id="suEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="field"><label for="suPassword">Password (8+ characters)</label><input id="suPassword" type="password" autocomplete="new-password"></div>
+      <div class="field"><label for="suPassword2">Confirm password</label><input id="suPassword2" type="password" autocomplete="new-password"></div>
+      <div class="field"><label for="suPlan">Choose your plan</label>
+        <select id="suPlan">
+          <option value="desk">Desk — $49.99/mo · up to 10 units</option>
+          <option value="pro" selected>Pro — $99.99/mo · up to 25 units</option>
+          <option value="portfolio">Portfolio — $199.99/mo · up to 50 units</option>
+          <option value="empire">Empire — $299/mo · unlimited units</option>
+        </select>
+      </div>
+      <p class="auth-error" id="signupError" hidden></p>
+      <button class="btn auth-submit" type="submit">Create account</button>
+    </form>
+    <form id="signinForm" novalidate hidden>
+      <div class="field"><label for="siEmail">Email</label><input id="siEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="field"><label for="siPassword">Password</label><input id="siPassword" type="password" autocomplete="current-password"></div>
+      <p class="auth-error" id="signinError" hidden></p>
+      <button class="btn auth-submit" type="submit">Sign in</button>
+    </form>
+    <div class="auth-demo">
+      <span>Just looking?</span>
+      <button type="button" id="demoExploreBtn" class="btn secondary">Explore the demo first</button>
+    </div>
+    <p class="auth-fineprint">Demo build — accounts are stored on this device only, in this browser. Nothing is sent to a server. Password recovery arrives with the hosted launch, so keep your password somewhere safe.</p>
+  </div>
+</section>
 <header class="topbar">
   <div class="row">
     <div>
@@ -169,7 +229,7 @@
     </div>
     <div class="spacer"></div>
     <div class="planctl">
-      <label for="planSelect"><strong>Plan</strong> (trial control — preview each tier)</label>
+      <label for="planSelect" id="planLabel"><strong>Plan</strong> (trial control — preview each tier)</label>
       <select id="planSelect">
         <option value="desk">Desk — $49.99/mo · up to 10 units</option>
         <option value="pro">Pro — $99.99/mo · up to 25 units</option>
@@ -177,6 +237,10 @@
         <option value="empire">Empire — $299/mo · unlimited units</option>
       </select>
       <span id="planBadge" class="pill info"></span>
+    </div>
+    <div class="acctctl" id="acctArea" hidden>
+      <span class="acctname">👤 <span id="acctName"></span></span>
+      <button id="signOutBtn" type="button">Sign out</button>
     </div>
     <button id="demoBtn" type="button">Load demo data</button>
     <button id="resetBtn" type="button">Clear all data</button>
@@ -538,7 +602,7 @@
   </section>
 </main>
 
-<footer>LandlordDesk — your data is stored only in this browser on this device (localStorage). Use Notes &amp; Data to export a backup. The full hosted version adds accounts, cloud sync, live online rent payments, screening reports, and listing syndication.</footer>
+<footer>LandlordDesk — in this build, your account and your data are stored only in this browser on this device (localStorage), one private workspace per account. Use Notes &amp; Data to export a backup. The hosted version adds server accounts with cloud sync, live online rent payments, screening reports, and listing syndication.</footer>
 <div class="toast" id="toast"></div>
 <div id="printArea"></div>
 
@@ -612,18 +676,223 @@ function migrate(d){
   d.version = 3;
   return d;
 }
-function load(){
-  try{ var raw = localStorage.getItem(LS_KEY); if(raw){ var d = JSON.parse(raw); if(d && d.properties) return migrate(d); } }catch(e){}
+function loadFrom(key){
+  try{ var raw = localStorage.getItem(key); if(raw){ var d = JSON.parse(raw); if(d && d.properties) return migrate(d); } }catch(e){}
   return defaultData();
 }
-var DB = load();
-function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){} }
+function load(){ return loadFrom(LS_KEY); }
+function saveTo(key, data){ try{ localStorage.setItem(key, JSON.stringify(data)); }catch(e){} }
+
+/* ================= Accounts (local to this device) =================
+   This build's accounts live entirely in this browser: a registry of
+   accounts (salted SHA-256 password hashes — never plaintext) plus one
+   data namespace per account. Signing in swaps which dataset the app
+   reads and writes; the pre-account dataset stays under LS_KEY as the
+   demo workspace. The hosted launch replaces this with server accounts
+   and cloud sync — the gate copy says so plainly. */
+var ACCOUNTS_KEY = "landlorddesk_accounts_v1";
+var SESSION_KEY = "landlorddesk_session_v1";
+function acctDataKey(id){ return "landlorddesk:v3:acct:" + id; }
+function loadAccounts(){
+  try{ var a = JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || "[]"); return Array.isArray(a) ? a : []; }catch(e){ return []; }
+}
+function saveAccounts(list){ try{ localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(list)); }catch(e){} }
+function findAccount(email){
+  email = String(email || "").trim().toLowerCase();
+  var list = loadAccounts();
+  for(var i = 0; i < list.length; i++) if(list[i].email === email) return list[i];
+  return null;
+}
+function sessionAccount(){
+  try{
+    var s = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+    if(s && s.accountId){
+      var list = loadAccounts();
+      for(var i = 0; i < list.length; i++) if(list[i].id === s.accountId) return list[i];
+    }
+  }catch(e){}
+  return null;
+}
+var SESSION = sessionAccount(); /* signed-in account record, or null = demo workspace */
+var DEMO_ENTERED = false;       /* visitor chose "Explore the demo first" at the gate */
+
+var DB = SESSION ? loadFrom(acctDataKey(SESSION.id)) : loadFrom(LS_KEY);
+function save(){ saveTo(SESSION ? acctDataKey(SESSION.id) : LS_KEY, DB); }
 save(); /* persist migration result */
 
 function toast(msg){
   var t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show");
   setTimeout(function(){ t.classList.remove("show"); }, 1800);
 }
+
+/* ---------- account helpers ---------- */
+function hasUserData(d){
+  if(!d) return false;
+  var arrays = ["properties","tenants","income","expenses","maintenance","vendors","tasks","notes",
+                "applications","leases","documents","bankTxns","lateFeesApplied"];
+  for(var i = 0; i < arrays.length; i++) if(Array.isArray(d[arrays[i]]) && d[arrays[i]].length) return true;
+  if(d.payments && Object.keys(d.payments).length) return true;
+  if(d.inspections && Object.keys(d.inspections).length) return true;
+  return false;
+}
+function randomSalt(){
+  var bytes = new Uint8Array(16);
+  if(window.crypto && crypto.getRandomValues) crypto.getRandomValues(bytes);
+  else for(var i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+  return Array.prototype.map.call(bytes, function(b){ return ("0" + b.toString(16)).slice(-2); }).join("");
+}
+function fallbackHash(text){
+  /* Only used when WebCrypto is unavailable (e.g. a non-secure context):
+     an iterated FNV-1a mix, widened to 64 hex chars, so a password is
+     still never stored in plain text. The normal path uses SHA-256. */
+  function block(seed){
+    var h1 = 0x811c9dc5 ^ seed, h2 = 0x9e3779b9 ^ Math.imul(seed + 1, 0x01000193);
+    for(var round = 0; round < 1000; round++){
+      for(var i = 0; i < text.length; i++){
+        h1 = Math.imul(h1 ^ text.charCodeAt(i), 0x01000193) >>> 0;
+        h2 = Math.imul(h2 ^ (h1 & 255) ^ text.charCodeAt(i), 0x85ebca6b) >>> 0;
+      }
+      h1 = (h1 ^ h2) >>> 0;
+    }
+    return ("0000000" + h1.toString(16)).slice(-8) + ("0000000" + h2.toString(16)).slice(-8);
+  }
+  return block(11) + block(47) + block(83) + block(129);
+}
+function hashPassword(password, salt){
+  var text = salt + ":" + password;
+  if(window.crypto && crypto.subtle && crypto.subtle.digest && window.TextEncoder){
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(function(buf){
+      return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ("0" + b.toString(16)).slice(-2); }).join("");
+    }).catch(function(){ return fallbackHash(text); });
+  }
+  return Promise.resolve(fallbackHash(text));
+}
+
+/* ---------- gate / session UI ---------- */
+function updateAccountUI(){
+  var area = document.getElementById("acctArea");
+  var nameEl = document.getElementById("acctName");
+  var label = document.getElementById("planLabel");
+  if(SESSION){
+    if(area) area.hidden = false;
+    if(nameEl) nameEl.textContent = SESSION.name;
+    if(label) label.innerHTML = "<strong>Plan</strong> — your account's plan";
+  } else {
+    if(area) area.hidden = true;
+    if(label) label.innerHTML = "<strong>Plan</strong> (trial control — preview each tier)";
+  }
+}
+function enterApp(){
+  document.body.classList.remove("auth-locked");
+  var gate = document.getElementById("authGate"); if(gate) gate.hidden = true;
+  updateAccountUI();
+  if(typeof renderAll === "function") renderAll();
+}
+function showAuthForm(which){
+  var su = document.getElementById("signupForm"), si = document.getElementById("signinForm");
+  var bSu = document.getElementById("showSignupBtn"), bSi = document.getElementById("showSigninBtn");
+  if(su) su.hidden = which !== "signup";
+  if(si) si.hidden = which !== "signin";
+  if(bSu) bSu.classList.toggle("active", which === "signup");
+  if(bSi) bSi.classList.toggle("active", which === "signin");
+  var e1 = document.getElementById("signupError"); if(e1) e1.hidden = true;
+  var e2 = document.getElementById("signinError"); if(e2) e2.hidden = true;
+}
+function showGate(which){
+  document.body.classList.add("auth-locked");
+  var gate = document.getElementById("authGate"); if(gate) gate.hidden = false;
+  showAuthForm(which || "signup");
+  updateAccountUI();
+}
+function authError(id, msg){
+  var el = document.getElementById(id);
+  if(el){ el.textContent = msg; el.hidden = false; }
+}
+function setSession(acct){
+  SESSION = acct;
+  try{
+    if(acct) localStorage.setItem(SESSION_KEY, JSON.stringify({ accountId: acct.id }));
+    else localStorage.removeItem(SESSION_KEY);
+  }catch(e){}
+}
+function signOut(){
+  setSession(null);
+  DEMO_ENTERED = false;
+  DB = loadFrom(LS_KEY); /* back to the demo workspace dataset */
+  showGate("signup");
+  if(typeof renderAll === "function") renderAll();
+  toast("Signed out — your account data stays saved on this device");
+}
+
+document.getElementById("showSignupBtn").addEventListener("click", function(){ showAuthForm("signup"); });
+document.getElementById("showSigninBtn").addEventListener("click", function(){ showAuthForm("signin"); });
+document.getElementById("signOutBtn").addEventListener("click", signOut);
+document.getElementById("demoExploreBtn").addEventListener("click", function(){
+  DEMO_ENTERED = true;
+  DB = loadFrom(LS_KEY);
+  enterApp();
+  toast("Exploring the demo — this is the sample workspace on this device");
+});
+document.getElementById("signupForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var name = document.getElementById("suName").value.trim();
+  var email = document.getElementById("suEmail").value.trim().toLowerCase();
+  var pw = document.getElementById("suPassword").value;
+  var pw2 = document.getElementById("suPassword2").value;
+  var plan = document.getElementById("suPlan").value;
+  if(!name) return authError("signupError", "Enter your name or business name.");
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return authError("signupError", "Enter a valid email address.");
+  if(pw.length < 8) return authError("signupError", "Password must be at least 8 characters.");
+  if(pw !== pw2) return authError("signupError", "The two passwords don't match — type the same password twice.");
+  if(findAccount(email)) return authError("signupError", "An account with this email already exists on this device — use Sign in instead.");
+  var salt = randomSalt();
+  hashPassword(pw, salt).then(function(hash){
+    var acct = { id: uid(), name: name, email: email, salt: salt, hash: hash, createdAt: todayStr(), plan: plan };
+    /* Zero data loss: the FIRST account created on this device adopts the
+       pre-account dataset when it holds real entries — the data becomes
+       that account's data (its plan field included), and the legacy key
+       is reset so no second account can adopt the same data twice. */
+    var legacy = loadFrom(LS_KEY);
+    var adopted = hasUserData(legacy);
+    var data;
+    if(adopted){
+      data = legacy;
+      acct.plan = data.plan; /* plan preserved from the adopted data */
+      saveTo(LS_KEY, defaultData());
+    } else {
+      data = defaultData(); data.plan = plan;
+    }
+    var accounts = loadAccounts(); accounts.push(acct); saveAccounts(accounts);
+    saveTo(acctDataKey(acct.id), data);
+    setSession(acct);
+    DB = data;
+    document.getElementById("suPassword").value = "";
+    document.getElementById("suPassword2").value = "";
+    enterApp();
+    toast(adopted
+      ? "Account created — your existing LandlordDesk data was moved into your account"
+      : "Account created — welcome to LandlordDesk, " + name);
+  });
+});
+document.getElementById("signinForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var email = document.getElementById("siEmail").value.trim().toLowerCase();
+  var pw = document.getElementById("siPassword").value;
+  var acct = findAccount(email);
+  if(!acct) return authError("signinError", "No account with this email exists on this device — create your account first.");
+  hashPassword(pw, acct.salt).then(function(hash){
+    if(hash !== acct.hash) return authError("signinError", "That password doesn't match this account — check it and try again.");
+    setSession(acct);
+    DB = loadFrom(acctDataKey(acct.id));
+    document.getElementById("siPassword").value = "";
+    enterApp();
+    toast("Welcome back, " + acct.name);
+  });
+});
+
+/* Boot gate state: a live session opens straight into the app; everyone
+   else lands on the account gate (the markup starts locked). */
+if(SESSION) enterApp(); else { showAuthForm("signup"); updateAccountUI(); }
 
 /* ================= Plans (owner pricing ladder, Oct 17, 2026) =================
    Local/demo gating: the plan is stored with the data and the switcher in the
@@ -691,7 +960,13 @@ function applyPlanGates(){
   }
 }
 document.getElementById("planSelect").addEventListener("change", function(){
-  DB.plan = this.value; save(); renderAll();
+  DB.plan = this.value; save();
+  if(SESSION){ /* in account mode the switcher edits the account's own plan */
+    var list = loadAccounts();
+    list.forEach(function(a){ if(a.id === SESSION.id) a.plan = DB.plan; });
+    saveAccounts(list); SESSION.plan = DB.plan;
+  }
+  renderAll();
   toast("Plan set to " + PLANS[curPlan()].name + " — locked features now show their plan");
 });
 
@@ -2030,7 +2305,7 @@ function readFileAsDataURL(file){
   });
 }
 function trySaveDB(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); return true; }
+  try{ localStorage.setItem(SESSION ? acctDataKey(SESSION.id) : LS_KEY, JSON.stringify(DB)); return true; }
   catch(e){ return false; }
 }
 function downloadDoc(doc){
